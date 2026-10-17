@@ -8,6 +8,7 @@ import coverMock from '../../assets/brand/84cb31.jpg';
 import interiorMock from '../../assets/brand/953513.jpg';
 import { pick } from '../../data/testimonials';
 import { site } from '../../data/site';
+import { url } from '../../lib/url';
 
 const services = [
   {
@@ -96,7 +97,7 @@ const pack = ['Diseño de cubierta', 'Diseño interior y maquetación', 'Ilustra
       </div>
 
       <p class="other">
-        <a class="btn btn--ghost" href="/comisiones/ilustracion-personalizada">¿Buscas otras cosas? Ilustración personalizada</a>
+        <a class="btn btn--ghost" href={url('/comisiones/ilustracion-personalizada')}>¿Buscas otras cosas? Ilustración personalizada</a>
       </p>
     </div>
   </section>

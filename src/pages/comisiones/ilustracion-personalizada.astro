@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import { url } from '../../lib/url';
 import MailtoForm from '../../components/MailtoForm.astro';
 
 const tiers = [
@@ -40,7 +41,7 @@ const tiers = [
 >
   <section class="page-hero">
     <div class="wrap">
-      <p class="eyebrow"><a href="/comisiones">← Comisiones</a></p>
+      <p class="eyebrow"><a href={url('/comisiones')}>← Comisiones</a></p>
       <h1>¿Quieres una ilustración personalizada?</h1>
       <p>Elige el formato que mejor encaje con tu idea. Todos los precios son orientativos y pueden variar según los detalles.</p>
     </div>

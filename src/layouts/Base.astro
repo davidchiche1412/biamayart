@@ -3,6 +3,7 @@ import '../styles/global.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import { site } from '../data/site';
+import { url } from '../lib/url';
 
 interface Props {
   title?: string;
@@ -14,7 +15,7 @@ interface Props {
 const { title, description = site.description, image = '/og-image.jpg', noindex = false } = Astro.props;
 const fullTitle = title ? `${title} · ${site.name}` : `${site.name} · Ilustración editorial de fantasía`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const ogImage = new URL(image, Astro.site);
+const ogImage = new URL(url(image), Astro.site);
 ---
 
 <!doctype html>
@@ -25,7 +26,7 @@ const ogImage = new URL(image, Astro.site);
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/png" href={url('/favicon.png')} />
     <meta name="theme-color" content="#f3eee3" />
     {noindex && <meta name="robots" content="noindex" />}
     <meta property="og:type" content="website" />
@@ -44,7 +45,7 @@ const ogImage = new URL(image, Astro.site);
         name: 'Beatriz Tamayo',
         alternateName: 'Biamay Art',
         jobTitle: 'Ilustradora editorial',
-        url: 'https://www.biamayart.com',
+        url: Astro.site?.href,
         email: site.email,
       })}
     />

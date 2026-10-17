@@ -1,6 +1,7 @@
 ---
 import Icon from './Icon.astro';
 import { nav, site, socials } from '../data/site';
+import { url } from '../lib/url';
 
 const year = new Date().getFullYear();
 ---
@@ -17,7 +18,7 @@ const year = new Date().getFullYear();
         {
           nav.map((item) => (
             <li>
-              <a href={item.href} {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+              <a href={item.external ? item.href : url(item.href)} {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
                 {item.label}
               </a>
             </li>

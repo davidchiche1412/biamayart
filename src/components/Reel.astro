@@ -3,6 +3,7 @@ import { getImage } from 'astro:assets';
 import Icon from './Icon.astro';
 import { imageOf } from '../data/artworks';
 import { lengthOf, type Reel } from '../data/reels';
+import { url } from '../lib/url';
 
 interface Props {
   reel: Reel;
@@ -107,7 +108,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
                   preload="none"
                   disablepictureinpicture
                   poster={c.poster.src}
-                  data-src={c.src}
+                  data-src={url(c.src)}
                   aria-label={c.alt}
                 />
               </div>
@@ -141,7 +142,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
         </div>
 
         <p class="hud__blurb">{reel.blurb}</p>
-        <a class="hud__cta" href={`/proyectos/${reel.projectSlug}`}>
+        <a class="hud__cta" href={url(`/proyectos/${reel.projectSlug}`)}>
           Ver el proyecto <Icon name="arrow" size={18} />
         </a>
 

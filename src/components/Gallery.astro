@@ -2,6 +2,7 @@
 import { getImage } from 'astro:assets';
 import Icon from './Icon.astro';
 import { imageOf, type Artwork } from '../data/artworks';
+import { url } from '../lib/url';
 
 interface Props {
   items: Artwork[];
@@ -33,7 +34,7 @@ const tiles = await Promise.all(
             class="tile__btn"
             data-open
             data-full={t.full.src}
-            data-video={t.video}
+            data-video={t.video && url(t.video)}
             data-alt={t.alt}
             style={`aspect-ratio:${t.ratio.toFixed(4)}`}
             aria-label={`${t.video ? 'Reproducir' : 'Ampliar'}: ${t.alt}`}

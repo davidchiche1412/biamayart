@@ -7,6 +7,7 @@ import Testimonials from '../components/Testimonials.astro';
 import { artworks } from '../data/artworks';
 import { reels } from '../data/reels';
 import { site } from '../data/site';
+import { url } from '../lib/url';
 import { testimonials } from '../data/testimonials';
 
 // Los vídeos viven en los recorridos; el mosaico solo lleva imágenes
@@ -18,8 +19,8 @@ const chunks = [stills.slice(0, 9), stills.slice(9, 21), stills.slice(21)];
     <div class="wrap intro__inner">
       <h1>{site.tagline}</h1>
       <div class="intro__cta">
-        <a class="btn btn--peach" href="/proyectos/editorial">Ilustración editorial</a>
-        <a class="btn btn--ghost-light" href="/proyectos">Mis proyectos</a>
+        <a class="btn btn--peach" href={url('/proyectos/editorial')}>Ilustración editorial</a>
+        <a class="btn btn--ghost-light" href={url('/proyectos')}>Mis proyectos</a>
       </div>
     </div>
   </section>

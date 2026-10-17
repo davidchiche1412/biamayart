@@ -4,14 +4,15 @@ import logo from '../assets/brand/logo.png';
 import avatar from '../assets/brand/3e17b3.jpg';
 import Icon from './Icon.astro';
 import { nav, socials } from '../data/site';
+import { stripBase, url } from '../lib/url';
 
-const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const path = stripBase(Astro.url.pathname).replace(/\/$/, '') || '/';
 const isActive = (href: string) => (href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`));
 ---
 
 <header class="nav" data-nav>
   <div class="nav__inner wrap">
-    <a href="/" class="nav__brand" aria-label="Biamay Art, ir a inicio">
+    <a href={url('/')} class="nav__brand" aria-label="Biamay Art, ir a inicio">
       <Image src={avatar} alt="" width={96} height={96} class="nav__avatar" loading="eager" />
       <Image src={logo} alt="Biamay Art" width={260} class="nav__logo" loading="eager" />
     </a>
@@ -28,7 +29,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path === href 
           nav.map((item) => (
             <li>
               <a
-                href={item.href}
+                href={item.external ? item.href : url(item.href)}
                 aria-current={!item.external && isActive(item.href) ? 'page' : undefined}
                 {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
               >

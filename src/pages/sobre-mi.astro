@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
 import portrait from '../assets/brand/63163c.png';
 import backdrop from '../assets/brand/155fa4.jpg';
 
@@ -52,8 +53,8 @@ const career = [
         </p>
         <p>Te invito a descubrir mis trabajos y a ponerte en contacto.</p>
         <p class="about__cta">
-          <a class="btn" href="/proyectos">Ver proyectos</a>
-          <a class="btn btn--ghost" href="/contacto">Contacto</a>
+          <a class="btn" href={url('/proyectos')}>Ver proyectos</a>
+          <a class="btn btn--ghost" href={url('/contacto')}>Contacto</a>
         </p>
       </div>
       <Image

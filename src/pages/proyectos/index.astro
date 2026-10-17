@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import { imageOf, projects } from '../../data/artworks';
+import { url } from '../../lib/url';
 ---
 
 <Base
@@ -22,7 +23,7 @@ import { imageOf, projects } from '../../data/artworks';
         {
           projects.map((p) => (
             <li>
-              <a class="card" href={`/proyectos/${p.slug}`}>
+              <a class="card" href={url(`/proyectos/${p.slug}`)}>
                 <Image src={imageOf(p.thumb)} alt="" width={460} height={460} class="card__img" />
                 <span class="card__title">{p.hashtag ?? p.title}</span>
                 {p.note && <span class="card__note">{p.note}</span>}
