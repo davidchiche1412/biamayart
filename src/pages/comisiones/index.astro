@@ -1,0 +1,374 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import Testimonials from '../../components/Testimonials.astro';
+import MailtoForm from '../../components/MailtoForm.astro';
+import collage from '../../assets/brand/89957b.png';
+import coverMock from '../../assets/brand/84cb31.jpg';
+import interiorMock from '../../assets/brand/953513.jpg';
+import { pick } from '../../data/testimonials';
+import { site } from '../../data/site';
+
+const services = [
+  {
+    title: 'Portada de libro (económica)',
+    price: 'Desde 45€',
+    items: ['Análisis de la información', '2 bocetos iniciales acordes a la novela', '2 revisiones del proceso', 'Maquetación'],
+  },
+  {
+    title: 'Cubierta de libro',
+    price: 'Desde 150€',
+    items: ['Lectura del manuscrito y análisis', '3 bocetos iniciales acordes a la novela', '3 revisiones del proceso', 'Maquetación'],
+  },
+  {
+    title: 'Ilustraciones interiores',
+    price: 'Desde 30€',
+    items: ['+5 ilustraciones por libro (3 sencillas y 2 con fondo)', 'En blanco y negro, o color', '2 revisiones del proceso', 'Precio/hora'],
+  },
+];
+
+const pack = ['Diseño de cubierta', 'Diseño interior y maquetación', 'Ilustraciones interiores', 'Marcapáginas e ilustración de personaje'];
+---
+
+<Base
+  title="Comisiones"
+  description="Portadas, cubiertas, ilustraciones interiores y packs para autores. Consulta tarifas, condiciones y pide presupuesto sin compromiso."
+>
+  <section class="page-hero hero">
+    <div class="wrap hero__grid">
+      <div>
+        <p class="eyebrow">Comisiones para autores</p>
+        <h1>¡Ha llegado el momento de mostrar tu historia al mundo!</h1>
+        <p>Tu trabajo merece una imagen que lo represente, que capture su esencia y que despierte curiosidad desde el primer segundo. Hay que dejar huella.</p>
+        <p class="hero__cta">
+          <a class="btn btn--peach" href={site.packPdf} target="_blank" rel="noopener noreferrer">
+            Descarga el PDF para saber más<span class="sr-only"> (se abre en una pestaña nueva)</span>
+          </a>
+          <a class="btn btn--ghost-light" href="#presupuesto">Pedir presupuesto</a>
+        </p>
+      </div>
+      <Image src={collage} alt="Collage de portadas e ilustraciones de libros realizadas por Beatriz" width={560} class="hero__img" loading="eager" />
+    </div>
+  </section>
+
+  <section class="section pitch">
+    <div class="wrap prose">
+      <h2>¡Toca destacar!</h2>
+      <p><strong>Tu historia ya está escrita y vamos a darle el rostro que merece.</strong></p>
+      <p>Como ilustradora, entiendo lo que implica mostrar tu trabajo al mundo. Escucharé tu idea, te apoyaré en el proceso y cuidaré los detalles para que la imagen refleje perfectamente lo que quieres transmitir.</p>
+      <p>Si compartes tu proyecto conmigo, me aseguraré de crear una ilustración que represente tu historia.</p>
+    </div>
+  </section>
+
+  <section class="section services" aria-labelledby="servicios-title">
+    <div class="wrap">
+      <h2 id="servicios-title">Servicios</h2>
+      <ul class="cards">
+        {
+          services.map((s) => (
+            <li class="card">
+              <h3>{s.title}</h3>
+              <p class="price">{s.price}</p>
+              <ul class="features">{s.items.map((i) => <li>{i}</li>)}</ul>
+              <a class="btn btn--ghost" href={site.packPdf} target="_blank" rel="noopener noreferrer">
+                Más detalles<span class="sr-only"> sobre {s.title} (PDF, pestaña nueva)</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="pack">
+        <div class="pack__media">
+          <Image src={coverMock} alt="Maqueta de portada y contraportada del libro «De sangre y cenizas»" width={520} />
+          <Image src={interiorMock} alt="Maquetación interior de un libro con ilustraciones" width={520} />
+        </div>
+        <div class="pack__body">
+          <p class="eyebrow">Dale un toque especial a tu obra</p>
+          <p class="pack__lead">Antes de que alguien lea una sola palabra, <strong>todo empieza por lo visual.</strong></p>
+          <h3>Pack especial</h3>
+          <p class="price">Desde 350€</p>
+          <ul class="features">{pack.map((i) => <li>{i}</li>)}</ul>
+          <a class="btn" href={site.packPdf} target="_blank" rel="noopener noreferrer">
+            Más detalles<span class="sr-only"> sobre el pack especial (PDF, pestaña nueva)</span>
+          </a>
+        </div>
+      </div>
+
+      <p class="other">
+        <a class="btn btn--ghost" href="/comisiones/ilustracion-personalizada">¿Buscas otras cosas? Ilustración personalizada</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="section quote" id="presupuesto" aria-labelledby="presupuesto-title">
+    <div class="wrap quote__grid">
+      <div>
+        <h2 id="presupuesto-title">¿Quieres presupuesto?</h2>
+        <p>Envía un correo para consultar precios y colaboraciones artísticas. Sin compromisos.</p>
+        <p class="quote__big">Trabajemos juntos</p>
+      </div>
+      <div class="quote__form">
+        <h3>Pide presupuesto</h3>
+        <MailtoForm variant="quote" id="presupuesto-form" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section terms" aria-labelledby="terms-title">
+    <div class="wrap prose">
+      <h2 id="terms-title">Términos y condiciones</h2>
+
+      <details open>
+        <summary>Condiciones generales</summary>
+        <p>El encargo se acepta cuando el artista lo dice. Enviar dinero sin que el artista haya aceptado el encargo no se considera luz verde. Si el artista decide no aceptar la petición en este caso, se le devolverá el dinero.</p>
+        <p>El artista tiene derecho a rechazar una petición.</p>
+        <p>No existe una lista de propuestas que no se aceptan para dibujar, pero el artista dejará claro si acepta la petición o no, dependiendo de lo cómodo/capaz que se sienta con la propuesta.</p>
+        <p>Los precios de los encargos que aparecen son estimativos. Los precios pueden aumentar según la cantidad de detalles o extras (es decir: armas, ropa detallada…), pero nunca disminuir (a menos que haya ofertas o descuentos que indique el artista).</p>
+        <p>Las ilustraciones se realizarán al estilo del artista. No se aceptarán peticiones de otro estilo (ejemplo: «estilo del artista X»).</p>
+        <p>Como autor, el artista conserva todos los derechos de la ilustración creada. Tiene derecho a compartir la obra de arte encargada en sus redes sociales, portafolio…</p>
+        <p>Sin embargo, el cliente puede solicitar mantener el arte en privado o no mostrarlo hasta una fecha determinada. Para transferir los derechos de autor será necesario un acuerdo firmado por ambas partes.</p>
+      </details>
+
+      <details>
+        <summary>Detalles de la comisión del cliente</summary>
+        <p>La información para empezar puede ser tan detallada como se desee, pero generalmente, menos detalles le dan más creatividad al creador, y el resultado final puede no ser tan preciso.</p>
+        <p>La información básica incluye:</p>
+        <ul>
+          <li>Tipo de encargo (medio cuerpo, fondo, semirrealista…)</li>
+          <li>Descripción de la idea</li>
+          <li>Información del cliente</li>
+        </ul>
+        <p>Además, algunas sugerencias de información extra (y de agradecer) que se puede compartir:</p>
+        <ul>
+          <li>Descripciones detalladas de características, atuendos, lugares…</li>
+          <li>Referencias (fotos, moodboards, imágenes inspiradoras)</li>
+          <li>Personalidades e historia de los personajes, sus relaciones</li>
+          <li>Estado de ánimo / atmósfera de la pieza</li>
+          <li>Especificaciones de tamaño, si las hay</li>
+          <li>Plazos, si los hay</li>
+        </ul>
+      </details>
+
+      <details>
+        <summary>Proceso del trabajo</summary>
+        <p>El cliente recibirá imágenes del proceso que dependerán del tipo de encargo. Las más habituales serán el boceto, el lineart, el color base y la pieza terminada. El artista tiene derecho a aumentar o reducir el número de pasos a mostrar.</p>
+        <p>Solo se pueden realizar cambios sustanciales en el boceto. El resto de etapas permiten hasta 3 cambios no sustanciales cada una. Más cambios pueden aumentar el precio en la cantidad que el artista considere.</p>
+        <p>Asimismo, los cambios que se deberían haber realizado en fases anteriores pueden incrementar el precio entre 5€ y 10€ dependiendo de la complejidad de realizarlos.</p>
+      </details>
+
+      <details>
+        <summary>Producto final</summary>
+        <p>El producto será enviado en formato .png o .pdf. El precio del encargo no incluye archivos nativos .psd o similares.</p>
+        <p>El producto será entregado con marca de agua o firma. Solo en las comisiones para uso comercial se podrá solicitar la eliminación de la marca de agua, pero deberá ser especificada por el cliente.</p>
+        <p>Nota (1): Es responsabilidad del comprador conservar los archivos recibidos. La pérdida de los archivos no es responsabilidad del autor.</p>
+        <p>Nota (2): La artista no proporcionará una copia física de la pieza digital y no será ella la encargada de proporcionarla, incluso si el consumidor ofrece pagar más por ella.</p>
+      </details>
+
+      <details>
+        <summary>Plazos y pagos</summary>
+        <p>El tiempo de realización de la obra suele oscilar entre una semana y un mes, dependiendo de la complejidad del encargo y de la disponibilidad del artista. Si se necesita más tiempo, se avisará al cliente con antelación. Este tiempo no comienza con el primer correo electrónico, sino cuando el artista envía el primer boceto.</p>
+        <p>Se informará al cliente cuándo será posible comenzar.</p>
+        <p>Los encargos urgentes pueden tener un recargo del 15% si el artista tuviera que adaptar su horario de trabajo para finalizarlo a tiempo.</p>
+        <p>Los precios están especificados en euros (€) y una estimación en USD. Esta tasa de cambio incluye la comisión del 3,5% que cobra PayPal por las conversiones.</p>
+        <p>El pago se realizará mediante PayPal o transferencia bancaria (importes superiores a 80€). El dinero deberá ser enviado a la dirección de PayPal proporcionada, con la opción «Confío en esta persona».</p>
+        <p>Se permiten dos alternativas para el pago:</p>
+        <ul>
+          <li>Pago total por adelantado, después de recibir el boceto.</li>
+          <li>50% por adelantado al momento de aceptar el encargo (antes del boceto) y el otro 50% antes de recibir el producto terminado (solo +80€ de comisiones).</li>
+        </ul>
+        <p>No se aceptan reembolsos excepto en el siguiente caso: el producto terminado no se ha entregado en tres meses. (No estar conforme con el resultado final o cambiar de opinión nunca se considerará una devolución).</p>
+        <p>La lista de precios muestra el precio con el IVA incluido, si lo hubiera. Actualmente, en España el IVA para las obras de arte originales es del 10% y del 21% para las obras de arte que van a ser utilizadas para reproducción.</p>
+        <p>Las facturas deben pagarse en EUR. Si el cliente desea pagar en otra moneda, será responsable de la tarifa que incluye PayPal por realizar la conversión de moneda, de aproximadamente el 3,5%.</p>
+      </details>
+
+      <details>
+        <summary>Derechos de autor, créditos y reproducción del artista</summary>
+        <p>El cliente paga por la obra del artista y el producto final, por lo que el artista conserva todos los derechos sobre la obra (distribución, reproducción, usos en redes sociales…).</p>
+        <p>El cliente debe acreditar al artista correctamente:</p>
+        <ul>
+          <li>Redes sociales: @barlert_art</li>
+          <li>Libros o sitios web: Beatriz Tamayo Chicharro (@barlert_art) [o Beatriz T.C (@barlert) si hay problemas de espacio]</li>
+        </ul>
+        <p>A excepción de las portadas y los libros ilustrados, todos los precios son para uso personal. Promoción digital (anuncios pagados): +30%.</p>
+        <p><strong>IMPORTANTE:</strong> El arte de Biamay Art <strong>NO</strong> se puede utilizar para IA o NFT.</p>
+      </details>
+    </div>
+  </section>
+
+  <Testimonials items={pick(['lorena', 'maria', 'fleur'])} id="opiniones-comisiones" />
+</Base>
+
+<style>
+  .hero__grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+  }
+  .hero__img {
+    justify-self: center;
+    width: min(100%, 420px);
+    border-radius: 16px;
+    box-shadow: 0 20px 44px rgb(0 0 0 / 0.3);
+  }
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+  }
+  .btn--ghost-light {
+    background: transparent;
+    border-color: var(--cream);
+    color: var(--cream);
+  }
+  .btn--ghost-light:hover {
+    background: var(--cream);
+    color: var(--sage-dark);
+    border-color: var(--cream);
+  }
+
+  .pitch {
+    background: var(--cream);
+    text-align: center;
+  }
+  .pitch .prose p {
+    margin-inline: auto;
+  }
+
+  .services {
+    background: var(--sand);
+  }
+  .services > .wrap > h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.75rem;
+    box-shadow: 0 8px 22px rgb(42 37 35 / 0.1);
+  }
+  .card .btn {
+    margin-top: auto;
+    align-self: start;
+  }
+  .price {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--terracotta-dark);
+    margin: 0;
+  }
+  .features {
+    margin-bottom: 1rem;
+  }
+  .features li {
+    padding-left: 1.6rem;
+    margin-bottom: 0.4rem;
+    position: relative;
+  }
+  .features li::before {
+    content: '🍂';
+    position: absolute;
+    left: 0;
+    font-size: 0.95em;
+  }
+
+  .pack {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: center;
+    margin-top: 3.5rem;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    background: var(--peach);
+    border-radius: 20px;
+  }
+  .pack__media {
+    display: grid;
+    gap: 1rem;
+  }
+  .pack__media :global(img) {
+    border-radius: 12px;
+    box-shadow: 0 10px 24px rgb(42 37 35 / 0.25);
+  }
+  .pack__lead {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+  }
+  .pack .eyebrow {
+    color: var(--terracotta-dark);
+  }
+  .other {
+    text-align: center;
+    margin: 2.5rem 0 0;
+  }
+
+  .quote {
+    background: var(--terracotta-dark);
+    color: var(--cream);
+  }
+  .quote__grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: start;
+  }
+  .quote__big {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.1;
+    color: var(--peach);
+  }
+  .quote__form {
+    background: var(--sand);
+    color: var(--ink);
+    padding: clamp(1.5rem, 3vw, 2.25rem);
+    border-radius: 16px;
+  }
+
+  .terms {
+    background: var(--cream);
+  }
+  details {
+    border-bottom: 1px solid rgb(42 37 35 / 0.2);
+    padding-block: 0.9rem;
+  }
+  summary {
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    padding-block: 0.25rem;
+  }
+  details[open] summary {
+    margin-bottom: 0.75rem;
+    color: var(--terracotta-dark);
+  }
+  details ul {
+    list-style: disc;
+    padding-left: 1.4rem;
+    margin-bottom: 1em;
+  }
+
+  @media (max-width: 860px) {
+    .hero__grid,
+    .pack,
+    .quote__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

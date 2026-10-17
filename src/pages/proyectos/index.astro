@@ -1,0 +1,82 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import { imageOf, projects } from '../../data/artworks';
+---
+
+<Base
+  title="Proyectos"
+  description="Mis proyectos de novela ilustrada (Don de Dios, Vendaval, Sibalia) y trabajo editorial."
+>
+  <section class="page-hero">
+    <div class="wrap">
+      <p class="eyebrow">Mundos propios y encargos</p>
+      <h1>Proyectos</h1>
+      <p>Novelas ilustradas en desarrollo y el trabajo editorial que he realizado para otros autores.</p>
+    </div>
+  </section>
+
+  <section class="section list">
+    <div class="wrap">
+      <ul class="cards">
+        {
+          projects.map((p) => (
+            <li>
+              <a class="card" href={`/proyectos/${p.slug}`}>
+                <Image src={imageOf(p.thumb)} alt="" width={460} height={460} class="card__img" />
+                <span class="card__title">{p.hashtag ?? p.title}</span>
+                {p.note && <span class="card__note">{p.note}</span>}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .list {
+    background: var(--sand);
+  }
+  .cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 2.5rem 2rem;
+  }
+  .card {
+    display: grid;
+    justify-items: center;
+    gap: 0.4rem;
+    text-align: center;
+    text-decoration: none;
+  }
+  .card__img {
+    width: min(100%, 260px);
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    box-shadow: 0 12px 28px rgb(42 37 35 / 0.25);
+    transition: transform 0.3s;
+  }
+  .card:hover .card__img {
+    transform: translateY(-6px) scale(1.02);
+  }
+  .card__title {
+    margin-top: 1rem;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--terracotta-dark);
+  }
+  .card:hover .card__title {
+    text-decoration: underline;
+  }
+  .card__note {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+</style>

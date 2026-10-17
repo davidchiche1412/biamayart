@@ -1,0 +1,175 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import portrait from '../assets/brand/63163c.png';
+import backdrop from '../assets/brand/155fa4.jpg';
+
+const career = [
+  {
+    period: 'Julio 2022 – Octubre 2023',
+    role: 'Concept Artist',
+    company: 'Polygonal Mind',
+    text: 'Al finalizar mis estudios comencé a trabajar en Polygonal Mind, una empresa dedicada al desarrollo de experiencias interactivas para el Metaverso. Mi trabajo como artista conceptual se basó en el diseño de entornos y personajes originales.',
+  },
+  {
+    period: 'Octubre 2021 – Noviembre 2024',
+    role: 'Freelance',
+    company: 'Terebi Magazine',
+    text: 'Paralelamente, comencé a colaborar con Terebi Magazine, una revista española dirigida por mujeres y dedicada a hablar del mundo de los videojuegos. Con ella, he trabajado en la ilustración editorial, además de la maquetación de artículos.',
+  },
+  {
+    period: 'Junio 2021 – Actualidad',
+    role: 'Freelance',
+    company: 'Ilustradora editorial',
+    text: 'Desde que finalicé mis estudios en ilustración, he desarrollado mi carrera como ilustradora freelance. He trabajado realizando encargos personalizados para particulares, además de tener el privilegio de colaborar con autores en el ámbito editorial, aportando mi visión artística a sus obras. Destacan "Súper Martín contra el Coronavirus", publicado por Editorial Liberman, y "Tradición Oral en Jaén y Provincia" de Manuel Rodríguez, donde mis ilustraciones han servido para enriquecer y complementar sus narrativas.',
+  },
+];
+---
+
+<Base
+  title="Sobre mí"
+  description="Soy Beatriz, ilustradora editorial especializada en fantasía y narrativa visual. Conoce mi trayectoria como artista conceptual y freelance."
+>
+  <section class="about">
+    <Image src={backdrop} alt="" class="about__bg" width={1600} loading="eager" />
+    <div class="wrap about__grid">
+      <div class="about__text">
+        <p class="eyebrow">Sobre mí</p>
+        <h1>Hola, soy Beatriz</h1>
+        <p><strong>Ilustradora editorial especializada en fantasía y narrativa visual.</strong></p>
+        <p>
+          Desde pequeña el dibujo ha formado parte de mi vida, y con los años se convirtió en mi profesión. He trabajado
+          como artista conceptual en la industria de los videojuegos y, a lo largo de mi trayectoria, me he especializado
+          en la creación de personajes, mundos y escenas que acompañan y enriquecen el relato escrito.
+        </p>
+        <p>
+          La fantasía es el eje central de mi trabajo. Disfruto desarrollando historias, personajes y mundos, explorando
+          siempre nuevas formas de narrar a través de la imagen.
+        </p>
+        <p>
+          Además de encargos editoriales, trabajo en proyectos personales de novela ilustrada en los que construyo
+          universos fantásticos completos.
+        </p>
+        <p>Te invito a descubrir mis trabajos y a ponerte en contacto.</p>
+        <p class="about__cta">
+          <a class="btn" href="/proyectos">Ver proyectos</a>
+          <a class="btn btn--ghost" href="/contacto">Contacto</a>
+        </p>
+      </div>
+      <Image
+        src={portrait}
+        alt="Retrato de Beatriz con auriculares haciendo el símbolo de la paz"
+        class="about__photo"
+        width={640}
+        loading="eager"
+      />
+    </div>
+  </section>
+
+  <section class="career section" aria-labelledby="career-title">
+    <div class="wrap">
+      <h2 id="career-title">Carrera profesional</h2>
+      <ol class="timeline">
+        {
+          career.map((c) => (
+            <li>
+              <p class="timeline__period">{c.period}</p>
+              <div>
+                <h3>
+                  {c.role} <span>({c.company})</span>
+                </h3>
+                <p>{c.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .about {
+    position: relative;
+    overflow: hidden;
+    padding: calc(var(--nav-h) + 3rem) 0 4rem;
+    background: var(--sand);
+    isolation: isolate;
+  }
+  .about__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(22px) saturate(0.8);
+    opacity: 0.35;
+    z-index: -1;
+  }
+  .about__grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: center;
+  }
+  .about__text h1 {
+    color: var(--terracotta-dark);
+  }
+  .about__photo {
+    width: 100%;
+    max-width: 460px;
+    justify-self: center;
+    border-radius: 24px;
+    box-shadow: 0 24px 50px rgb(42 37 35 / 0.3);
+  }
+  .about__cta {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+  .career {
+    background: var(--peach);
+  }
+  .career h2 {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .timeline {
+    list-style: none;
+    margin: 0 auto;
+    padding: 0;
+    max-width: 980px;
+    display: grid;
+    gap: 2.5rem;
+  }
+  .timeline li {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgb(42 37 35 / 0.3);
+  }
+  .timeline li:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .timeline__period {
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
+  }
+  .timeline h3 span {
+    font-weight: 400;
+    font-size: 0.85em;
+  }
+  @media (max-width: 800px) {
+    .about__grid,
+    .timeline li {
+      grid-template-columns: 1fr;
+    }
+    .timeline li {
+      gap: 0.5rem;
+    }
+  }
+</style>

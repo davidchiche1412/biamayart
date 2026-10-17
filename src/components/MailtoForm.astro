@@ -1,0 +1,111 @@
+---
+interface Props {
+  variant: 'contact' | 'quote';
+  id: string;
+}
+const { variant, id } = Astro.props;
+const isQuote = variant === 'quote';
+const subjectDefault = isQuote ? 'Solicitud de presupuesto' : '';
+---
+
+<form
+  class="form"
+  data-mailto-form
+  data-to={'artbarlert@gmail.com'}
+  data-default-subject={subjectDefault}
+  action="mailto:artbarlert@gmail.com"
+  method="post"
+  enctype="text/plain"
+>
+  <div class="row">
+    <div class="field">
+      <label for={`${id}-name`}>Nombre <span aria-hidden="true">*</span></label>
+      <input id={`${id}-name`} name="nombre" type="text" autocomplete="given-name" required />
+    </div>
+    {
+      isQuote && (
+        <div class="field">
+          <label for={`${id}-surname`}>Apellidos</label>
+          <input id={`${id}-surname`} name="apellidos" type="text" autocomplete="family-name" />
+        </div>
+      )
+    }
+  </div>
+  <div class="field">
+    <label for={`${id}-email`}>Email <span aria-hidden="true">*</span></label>
+    <input id={`${id}-email`} name="email" type="email" autocomplete="email" required />
+  </div>
+  {
+    !isQuote && (
+      <div class="field">
+        <label for={`${id}-subject`}>Asunto</label>
+        <input id={`${id}-subject`} name="asunto" type="text" />
+      </div>
+    )
+  }
+  <div class="field">
+    <label for={`${id}-message`}>{isQuote ? 'Cuéntame tu proyecto' : 'Mensaje'}</label>
+    <textarea id={`${id}-message`} name="mensaje" rows="6" required={!isQuote}></textarea>
+  </div>
+  <button class="btn" type="submit">Enviar</button>
+  <p class="hint">Se abrirá tu aplicación de correo con el mensaje ya preparado para enviar a artbarlert@gmail.com.</p>
+</form>
+
+<style>
+  .form {
+    display: grid;
+    gap: 1.1rem;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.1rem;
+  }
+  .field {
+    display: grid;
+    gap: 0.4rem;
+  }
+  label {
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+  input,
+  textarea {
+    width: 100%;
+    font: inherit;
+    color: var(--ink);
+    background: #fff;
+    border: 2px solid rgb(42 37 35 / 0.25);
+    border-radius: var(--radius);
+    padding: 0.8rem 0.95rem;
+  }
+  input:focus,
+  textarea:focus {
+    outline: 3px solid var(--terracotta);
+    outline-offset: 1px;
+    border-color: var(--terracotta);
+  }
+  .btn {
+    justify-self: start;
+  }
+  .hint {
+    margin: 0;
+    font-size: 0.85rem;
+    color: inherit;
+    opacity: 0.8;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('[data-mailto-form]').forEach((form) => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = new FormData(form);
+      const get = (k: string) => String(data.get(k) ?? '').trim();
+      const fullName = [get('nombre'), get('apellidos')].filter(Boolean).join(' ');
+      const subject = get('asunto') || form.dataset.defaultSubject || 'Contacto desde la web';
+      const body = [`Nombre: ${fullName}`, `Email: ${get('email')}`, '', get('mensaje')].join('\n');
+      window.location.href = `mailto:${form.dataset.to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    });
+  });
+</script>

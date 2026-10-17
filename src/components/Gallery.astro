@@ -1,0 +1,569 @@
+---
+import { getImage } from 'astro:assets';
+import Icon from './Icon.astro';
+import { imageOf, type Artwork } from '../data/artworks';
+
+interface Props {
+  items: Artwork[];
+  id?: string;
+  priority?: boolean;
+}
+
+const { items, id = 'galeria', priority = false } = Astro.props;
+
+const tiles = await Promise.all(
+  items.map(async (item, i) => {
+    const meta = imageOf(item.id);
+    const thumb = await getImage({ src: meta, width: 900, format: 'webp', quality: 78 });
+    const small = await getImage({ src: meta, width: 480, format: 'webp', quality: 75 });
+    const full = await getImage({ src: meta, width: 2000, format: 'webp', quality: 85 });
+    return { ...item, thumb, small, full, ratio: meta.width / meta.height, eager: priority && i < 4 };
+  }),
+);
+---
+
+<section class="gallery" aria-label="Galería de ilustraciones" data-gallery>
+  <div class="grid" id={id} data-grid>
+    <ul class="col">
+    {
+      tiles.map((t, i) => (
+        <li class="tile" data-tags={t.tags.join(' ')} data-ratio={t.ratio.toFixed(4)}>
+          <button
+            type="button"
+            class="tile__btn"
+            data-open
+            data-full={t.full.src}
+            data-video={t.video}
+            data-alt={t.alt}
+            style={`aspect-ratio:${t.ratio.toFixed(4)}`}
+            aria-label={`${t.video ? 'Reproducir' : 'Ampliar'}: ${t.alt}`}
+          >
+            <img
+              src={t.thumb.src}
+              srcset={`${t.small.src} 480w, ${t.thumb.src} 900w`}
+              width={t.thumb.attributes.width}
+              height={t.thumb.attributes.height}
+              alt=""
+              loading={t.eager ? 'eager' : 'lazy'}
+              fetchpriority={priority && i < 2 ? 'high' : undefined}
+              decoding="async"
+              sizes="(min-width: 1100px) 410px, calc(50vw - 20px)"
+            />
+            {t.video && (
+              <span class="tile__play" aria-hidden="true">
+                <Icon name="play" size={28} />
+              </span>
+            )}
+          </button>
+        </li>
+      ))
+    }
+    </ul>
+  </div>
+
+  <dialog class="lightbox" aria-label="Visor de ilustración" data-lightbox>
+    <div class="lightbox__bg" data-bg></div>
+    <img class="lightbox__ambient" data-ambient alt="" aria-hidden="true" />
+    <div class="lightbox__stage" data-stage></div>
+    <p class="lightbox__caption" data-caption aria-live="polite"></p>
+    <button type="button" class="lb-btn lb-close" data-close aria-label="Cerrar"><Icon name="close" size={24} /></button>
+    <button type="button" class="lb-btn lb-prev" data-prev aria-label="Anterior"><Icon name="arrow" size={26} /></button>
+    <button type="button" class="lb-btn lb-next" data-next aria-label="Siguiente"><Icon name="arrow" size={26} /></button>
+  </dialog>
+</section>
+
+<style>
+  .grid :global(.col) {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    columns: 3;
+    column-gap: 12px;
+  }
+  .grid.is-masonry {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .grid.is-masonry :global(.col) {
+    flex: 1;
+    min-width: 0;
+    columns: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .grid.is-masonry .tile {
+    margin: 0;
+  }
+  .tile {
+    break-inside: avoid;
+    margin-bottom: 12px;
+  }
+  .tile[hidden] {
+    display: none;
+  }
+  .tile__btn {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: zoom-in;
+    background: var(--sand);
+  }
+  .tile__btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease, filter 0.3s;
+  }
+  .tile__btn:hover img {
+    transform: scale(1.04);
+    filter: brightness(0.92);
+  }
+  .tile__play {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgb(42 37 35 / 0.65);
+    color: #fff;
+    pointer-events: none;
+  }
+  @media (max-width: 1099px) {
+    .grid :global(.col) {
+      columns: 2;
+    }
+  }
+  @media (max-width: 520px) {
+    .grid.is-masonry,
+    .grid.is-masonry :global(.col) {
+      gap: 8px;
+    }
+  }
+
+  .tile__btn.is-lifted img {
+    opacity: 0;
+    transition: none;
+  }
+
+  .lightbox {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    overflow: hidden;
+  }
+  .lightbox:not([open]) {
+    display: none;
+  }
+  .lightbox[open] {
+    display: grid;
+    grid-template-rows: 1fr auto;
+  }
+  .lightbox::backdrop {
+    background: transparent;
+  }
+  .lightbox__bg {
+    position: absolute;
+    inset: 0;
+    background: rgb(16 12 11 / 0.95);
+    backdrop-filter: blur(18px) saturate(1.2);
+  }
+  .lightbox__ambient {
+    position: absolute;
+    inset: -15%;
+    width: 130%;
+    height: 130%;
+    object-fit: cover;
+    filter: blur(90px) saturate(1.6);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .lightbox__stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    padding: 3.5rem 5rem 0.5rem;
+    touch-action: pan-y;
+  }
+  .lightbox__stage :global(.slide) {
+    position: relative;
+    will-change: transform, opacity;
+  }
+  .lightbox__stage :global(.slide img),
+  .lightbox__stage :global(.slide video) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 6px;
+    box-shadow: 0 30px 80px rgb(0 0 0 / 0.55);
+    background: #000;
+  }
+  .lightbox__caption {
+    position: relative;
+    text-align: center;
+    padding: 0.5rem 1.5rem 1.25rem;
+    margin: 0;
+    font-size: 0.95rem;
+    color: #e6dfcf;
+  }
+  .lb-btn {
+    position: absolute;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid rgb(243 238 227 / 0.2);
+    background: rgb(243 238 227 / 0.12);
+    backdrop-filter: blur(8px);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .lb-btn:hover {
+    background: rgb(243 238 227 / 0.3);
+  }
+  .lb-close {
+    top: 0.9rem;
+    right: 0.9rem;
+  }
+  .lb-close:hover {
+    transform: rotate(90deg);
+  }
+  .lb-prev,
+  .lb-next {
+    top: 50%;
+    margin-top: -24px;
+  }
+  .lb-prev {
+    left: 0.9rem;
+  }
+  .lb-prev :global(svg) {
+    transform: scaleX(-1);
+  }
+  .lb-next {
+    right: 0.9rem;
+  }
+  @media (max-width: 640px) {
+    .lightbox__stage {
+      padding: 4rem 0.75rem 0.5rem;
+    }
+    .lb-prev,
+    .lb-next {
+      top: auto;
+      bottom: 4.5rem;
+      margin-top: 0;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((root) => {
+    const tiles = [...root.querySelectorAll<HTMLElement>('.tile')];
+    const dialog = root.querySelector<HTMLDialogElement>('[data-lightbox]')!;
+    const stage = dialog.querySelector<HTMLElement>('[data-stage]')!;
+    const caption = dialog.querySelector<HTMLElement>('[data-caption]')!;
+    let opener: HTMLElement | null = null;
+    let current = 0;
+
+    const grid = root.querySelector<HTMLElement>('[data-grid]')!;
+    let lastCols = 0;
+    const visible = () => tiles.filter((t) => !t.hidden);
+
+    // Reparte las piezas en columnas manteniendo el orden de lectura (izq→der, arriba→abajo)
+    const layout = () => {
+      const n = window.innerWidth >= 1100 ? 3 : 2;
+      lastCols = n;
+      const cols = Array.from({ length: n }, () => ({ el: document.createElement('ul'), h: 0 }));
+      visible().forEach((t) => {
+        const col = cols.reduce((a, b) => (b.h < a.h ? b : a));
+        col.el.className = 'col';
+        col.el.append(t);
+        col.h += 1 / Number(t.dataset.ratio);
+      });
+      grid.classList.add('is-masonry');
+      grid.replaceChildren(...cols.map((c) => c.el));
+    };
+    window.addEventListener('resize', () => {
+      const n = window.innerWidth >= 1100 ? 3 : 2;
+      if (n !== lastCols) layout();
+    });
+
+    // Los filtros son globales: la home reparte las piezas en varios tramos de mosaico
+    const applyFilter = (tag: string) => {
+      tiles.forEach((t) => {
+        t.hidden = tag !== 'all' && !(t.dataset.tags ?? '').split(' ').includes(tag);
+      });
+      root.hidden = visible().length === 0;
+      layout();
+    };
+    window.addEventListener('gallery:filter', (e) => applyFilter((e as CustomEvent<string>).detail));
+    applyFilter('all');
+
+    const bg = dialog.querySelector<HTMLElement>('[data-bg]')!;
+    const ambient = dialog.querySelector<HTMLImageElement>('[data-ambient]')!;
+    const chrome = [...dialog.querySelectorAll<HTMLElement>('.lb-btn')];
+    const motionOk = () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const EASE_OUT = 'cubic-bezier(0.16, 1, 0.3, 1)';
+    const EASE_IN = 'cubic-bezier(0.55, 0, 0.7, 0.2)';
+
+    let busy = false;
+    let slide: HTMLElement | null = null;
+
+    const run = (el: Element, frames: Keyframe[], duration: number, easing = EASE_OUT, delay = 0) =>
+      motionOk()
+        ? el.animate(frames, { duration, easing, delay, fill: 'both' }).finished.then(() => undefined)
+        : Promise.resolve();
+
+    const btnAt = (i: number) => visible()[i].querySelector<HTMLButtonElement>('[data-open]')!;
+    const thumbOf = (btn: HTMLElement) => btn.querySelector<HTMLImageElement>('img')!;
+    const ratioOf = (btn: HTMLElement) => Number((btn.closest('.tile') as HTMLElement).dataset.ratio);
+
+    // Tamaño máximo con el que cabe la pieza en el visor, respetando su proporción
+    const fit = (ratio: number) => {
+      const cs = getComputedStyle(stage);
+      const w = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const h = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const width = Math.min(w, h * ratio);
+      return { width, height: width / ratio };
+    };
+
+    const resize = (el: HTMLElement) => {
+      const { width, height } = fit(Number(el.dataset.ratio));
+      el.style.width = `${width}px`;
+      el.style.height = `${height}px`;
+    };
+
+    const buildSlide = (btn: HTMLButtonElement) => {
+      const el = document.createElement('div');
+      el.className = 'slide';
+      el.dataset.ratio = String(ratioOf(btn));
+      resize(el);
+      const img = document.createElement('img');
+      img.src = thumbOf(btn).currentSrc || thumbOf(btn).src;
+      img.alt = btn.dataset.alt ?? '';
+      img.decoding = 'async';
+      el.append(img);
+
+      // La miniatura ya está en caché: se muestra al instante y se sustituye por la versión grande sin parpadeo
+      if (!btn.dataset.video) {
+        const full = new Image();
+        full.src = btn.dataset.full!;
+        full.decode().then(() => (img.src = full.src)).catch(() => {});
+      }
+      return el;
+    };
+
+    const attachVideo = (el: HTMLElement, btn: HTMLButtonElement) => {
+      if (!btn.dataset.video || el !== slide) return;
+      const v = document.createElement('video');
+      v.src = btn.dataset.video;
+      v.poster = thumbOf(btn).currentSrc || thumbOf(btn).src;
+      v.controls = true;
+      v.autoplay = true;
+      v.loop = true;
+      v.muted = true;
+      v.playsInline = true;
+      v.setAttribute('aria-label', btn.dataset.alt ?? '');
+      // El póster tiene otra proporción que el vídeo: se ajusta el marco al vídeo real
+      v.addEventListener('loadedmetadata', () => {
+        el.dataset.ratio = String(v.videoWidth / v.videoHeight);
+        resize(el);
+      });
+      v.addEventListener('playing', () => el.querySelector('img')?.remove(), { once: true });
+      el.append(v);
+    };
+
+    const setInfo = (btn: HTMLButtonElement, animate: boolean) => {
+      caption.textContent = `${btn.dataset.alt ?? ''} (${current + 1}/${visible().length})`;
+      ambient.src = thumbOf(btn).currentSrc || thumbOf(btn).src;
+      if (animate) run(ambient, [{ opacity: 0 }, { opacity: 0.5 }], 600, 'ease-out');
+      const n = visible().length;
+      [(current + 1) % n, (current - 1 + n) % n].forEach((i) => {
+        const b = btnAt(i);
+        if (!b.dataset.video) new Image().src = b.dataset.full!;
+      });
+    };
+
+    const lift = (btn: HTMLElement | null, on: boolean) => btn?.classList.toggle('is-lifted', on);
+
+    // Anima el visor entre la miniatura y su posición ampliada. `closing` invierte el sentido.
+    const flip = (el: HTMLElement, thumb: DOMRect, full: DOMRect, duration: number, easing: string, closing = false) => {
+      const sx = thumb.width / full.width;
+      const sy = thumb.height / full.height;
+      const small = {
+        transformOrigin: '0 0',
+        transform: `translate(${thumb.left - full.left}px, ${thumb.top - full.top}px) scale(${sx}, ${sy})`,
+      };
+      const large = { transformOrigin: '0 0', transform: 'translate(0, 0) scale(1, 1)' };
+      const radiusSmall = { borderRadius: `${10 / sx}px` };
+      const radiusLarge = { borderRadius: '6px' };
+      const media = el.querySelector('img, video') ?? el;
+      run(media, closing ? [radiusLarge, radiusSmall] : [radiusSmall, radiusLarge], duration, easing);
+      return run(el, closing ? [large, small] : [small, large], duration, easing);
+    };
+
+    const open = async (btn: HTMLButtonElement) => {
+      busy = true;
+      opener = btn;
+      current = visible().indexOf(btn.closest('.tile') as HTMLElement);
+      const from = thumbOf(btn).getBoundingClientRect();
+
+      dialog.showModal();
+      setInfo(btn, false);
+      slide = buildSlide(btn);
+      stage.replaceChildren(slide);
+      const to = slide.getBoundingClientRect();
+      lift(btn, true);
+
+      run(bg, [{ opacity: 0 }, { opacity: 1 }], 450, 'ease-out');
+      run(ambient, [{ opacity: 0, transform: 'scale(1.25)' }, { opacity: 0.5, transform: 'scale(1)' }], 1100);
+      run(caption, [{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], 500, EASE_OUT, 380);
+      chrome.forEach((c, i) =>
+        run(c, [{ opacity: 0, scale: '0.6' }, { opacity: 1, scale: '1' }], 450, EASE_OUT, 300 + i * 70),
+      );
+      run(
+        slide.querySelector('img')!,
+        [{ boxShadow: '0 0 0 rgb(0 0 0 / 0)' }, { boxShadow: '0 30px 80px rgb(0 0 0 / 0.55)' }],
+        700,
+        'ease-out',
+      );
+      await flip(slide, from, to, 720, 'cubic-bezier(0.22, 1.05, 0.3, 1)');
+      attachVideo(slide, btn);
+      busy = false;
+    };
+
+    const close = async () => {
+      if (busy || !dialog.open) return;
+      busy = true;
+      const btn = btnAt(current);
+      const target = thumbOf(btn);
+      let to = target.getBoundingClientRect();
+      const offscreen = to.bottom < 0 || to.top > window.innerHeight;
+      if (offscreen) {
+        btn.scrollIntoView({ block: 'center', behavior: 'instant' });
+        to = target.getBoundingClientRect();
+      }
+      lift(btn, true);
+      const from = slide!.getBoundingClientRect();
+      slide!.querySelector('video')?.pause();
+
+      run(caption, [{ opacity: 1 }, { opacity: 0, transform: 'translateY(10px)' }], 200, 'ease-in');
+      chrome.forEach((c) => run(c, [{ opacity: 1 }, { opacity: 0 }], 180, 'ease-in'));
+      run(ambient, [{ opacity: 0.5 }, { opacity: 0 }], 400, 'ease-in');
+      run(bg, [{ opacity: 1 }, { opacity: 0 }], 520, 'ease-in', 120);
+      run(slide!.querySelector('img, video') ?? slide!, [{ boxShadow: '0 30px 80px rgb(0 0 0 / 0.55)' }, { boxShadow: '0 0 0 rgb(0 0 0 / 0)' }], 450, 'ease-in');
+      try {
+        await flip(slide!, to, from, 520, 'cubic-bezier(0.45, 0, 0.2, 1)', true);
+      } finally {
+        busy = false;
+        dialog.close();
+      }
+    };
+
+    const step = async (delta: number) => {
+      if (busy) return;
+      busy = true;
+      const n = visible().length;
+      const old = slide!;
+      lift(btnAt(current), false);
+      current = (current + delta + n) % n;
+      const btn = btnAt(current);
+      lift(btn, true);
+      opener = btn;
+
+      const next = buildSlide(btn);
+      next.style.position = 'absolute';
+      stage.append(next);
+      setInfo(btn, true);
+      run(caption, [{ opacity: 0, transform: `translateY(8px)` }, { opacity: 1, transform: 'none' }], 400, EASE_OUT);
+
+      const leave = run(
+        old,
+        [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-delta * 90}px) scale(0.9) rotate(${-delta * 2}deg)` }],
+        320,
+        EASE_IN,
+      );
+      const enter = run(
+        next,
+        [{ opacity: 0, transform: `translateX(${delta * 120}px) scale(0.88) rotate(${delta * 3}deg)` }, { opacity: 1, transform: 'none' }],
+        560,
+        EASE_OUT,
+        120,
+      );
+      await Promise.all([leave, enter]);
+      old.remove();
+      next.style.position = '';
+      next.getAnimations().forEach((a) => a.cancel());
+      slide = next;
+      attachVideo(next, btn);
+      busy = false;
+    };
+
+    root.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-open]');
+      if (btn && !busy) open(btn);
+    });
+
+    dialog.querySelector('[data-close]')!.addEventListener('click', close);
+    dialog.querySelector('[data-prev]')!.addEventListener('click', () => step(-1));
+    dialog.querySelector('[data-next]')!.addEventListener('click', () => step(1));
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') step(-1);
+      if (e.key === 'ArrowRight') step(1);
+    });
+    // Esc pasa también por la animación de cierre
+    dialog.addEventListener('cancel', (e) => {
+      e.preventDefault();
+      close();
+    });
+    dialog.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog || e.target === stage || e.target === bg) close();
+    });
+    dialog.addEventListener('close', () => {
+      stage.replaceChildren();
+      slide = null;
+      lift(opener, false);
+      opener?.focus({ preventScroll: true });
+    });
+
+    // Gestos táctiles: deslizar en horizontal cambia de pieza, hacia abajo cierra
+    let startX = 0;
+    let startY = 0;
+    stage.addEventListener('pointerdown', (e) => {
+      startX = e.clientX;
+      startY = e.clientY;
+    });
+    stage.addEventListener('pointerup', (e) => {
+      if (e.pointerType !== 'touch') return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? 1 : -1);
+      else if (dy > 90) close();
+    });
+
+    window.addEventListener('resize', () => {
+      if (!dialog.open || !slide) return;
+      resize(slide);
+    });
+  });
+</script>

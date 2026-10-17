@@ -1,0 +1,156 @@
+---
+import Base from '../../layouts/Base.astro';
+import MailtoForm from '../../components/MailtoForm.astro';
+
+const tiers = [
+  {
+    title: 'Busto',
+    price: 'Desde 40€',
+    scope: 'Por encima del hombro',
+    items: ['Ilustración detallada', 'Fondo sencillo (detallado +25€)', '2 bocetos iniciales', '3 revisiones'],
+    extra: ['Personajes extras +20€'],
+  },
+  {
+    title: 'Medio cuerpo',
+    price: 'Desde 50€',
+    scope: 'Por encima de la cintura',
+    items: ['Ilustración detallada', 'Fondo sencillo (detallado +25€)', '2 bocetos iniciales', '3 revisiones'],
+    extra: ['Personajes extras +20€'],
+  },
+  {
+    title: 'Cuerpo entero',
+    price: 'Desde 60€',
+    scope: 'Figura completa',
+    items: ['Ilustración detallada', 'Fondo sencillo (detallado +25€)', '2 bocetos iniciales', '3 revisiones'],
+    extra: ['Personajes extras +20€'],
+  },
+  {
+    title: 'Animación',
+    price: 'Desde 80€',
+    scope: 'Depende de la duración y el tipo de ilustración base',
+    items: ['Ilustración base (1 personaje + fondo sencillo)', 'Animación simple (full animación +50€)', 'Duración 5-15 segundos', '2 revisiones'],
+    extra: ['Personajes extras +20€', 'Fondo detallado +25€'],
+  },
+];
+---
+
+<Base
+  title="Ilustración personalizada"
+  description="Tarifas de ilustración personalizada: busto, medio cuerpo, cuerpo entero y animación. Pide tu presupuesto gratis."
+>
+  <section class="page-hero">
+    <div class="wrap">
+      <p class="eyebrow"><a href="/comisiones">← Comisiones</a></p>
+      <h1>¿Quieres una ilustración personalizada?</h1>
+      <p>Elige el formato que mejor encaje con tu idea. Todos los precios son orientativos y pueden variar según los detalles.</p>
+    </div>
+  </section>
+
+  <section class="section tiers" aria-label="Tarifas">
+    <div class="wrap">
+      <ul class="cards">
+        {
+          tiers.map((t) => (
+            <li class="card">
+              <h2>{t.title}</h2>
+              <p class="price">{t.price}</p>
+              <p class="scope">{t.scope}</p>
+              <ul class="features">{t.items.map((i) => <li>{i}</li>)}</ul>
+              <ul class="features features--extra">{t.extra.map((i) => <li>{i}</li>)}</ul>
+              <a class="btn btn--ghost" href="#presupuesto">
+                Más información<span class="sr-only"> sobre {t.title}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section quote" id="presupuesto" aria-labelledby="presupuesto-title">
+    <div class="wrap quote__box">
+      <h2 id="presupuesto-title">Obtén un presupuesto gratis</h2>
+      <p>¡Descríbeme la idea que tienes en mente y démosle forma!</p>
+      <MailtoForm variant="quote" id="ilustracion-form" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .eyebrow a {
+    text-decoration: none;
+  }
+  .eyebrow a:hover {
+    text-decoration: underline;
+  }
+  .tiers {
+    background: var(--sand);
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.75rem;
+    box-shadow: 0 8px 22px rgb(42 37 35 / 0.1);
+  }
+  .card h2 {
+    font-size: 1.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.2rem;
+  }
+  .price {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    color: var(--terracotta-dark);
+    margin: 0;
+  }
+  .scope {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    min-height: 3em;
+  }
+  .features li {
+    padding-left: 1.6rem;
+    margin-bottom: 0.4rem;
+    position: relative;
+  }
+  .features li::before {
+    content: '🍂';
+    position: absolute;
+    left: 0;
+    font-size: 0.95em;
+  }
+  .features--extra {
+    margin-bottom: 1.25rem;
+  }
+  .card .btn {
+    margin-top: auto;
+    align-self: start;
+  }
+  .quote {
+    background: var(--cream);
+  }
+  .quote__box {
+    max-width: 760px;
+  }
+  .quote h2 {
+    text-align: center;
+  }
+  .quote__box > p {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+</style>

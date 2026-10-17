@@ -1,0 +1,47 @@
+---
+import Base from '../../layouts/Base.astro';
+import Gallery from '../../components/Gallery.astro';
+import { byProject, projects, type Project } from '../../data/artworks';
+
+export function getStaticPaths() {
+  return projects.map((project) => ({ params: { slug: project.slug }, props: { project } }));
+}
+
+const { project } = Astro.props as { project: Project };
+const items = byProject(project.slug);
+const heading = project.hashtag ?? project.title;
+---
+
+<Base title={project.title} description={project.intro[0].slice(0, 155)}>
+  <section class="page-hero page-hero--terracotta">
+    <div class="wrap">
+      <p class="eyebrow"><a href="/proyectos">← Proyectos</a></p>
+      <h1>{heading}</h1>
+      <div class="intro">
+        {project.intro.map((p) => <p>{p}</p>)}
+        {project.note && <p><em>({project.note})</em></p>}
+      </div>
+    </div>
+  </section>
+
+  <section class="section gallery-section">
+    <div class="wrap">
+      <Gallery items={items} id={`galeria-${project.slug}`} />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .eyebrow a {
+    text-decoration: none;
+  }
+  .eyebrow a:hover {
+    text-decoration: underline;
+  }
+  .intro {
+    max-width: 70ch;
+  }
+  .gallery-section {
+    background: var(--sand);
+  }
+</style>

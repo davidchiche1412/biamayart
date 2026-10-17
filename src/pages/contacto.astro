@@ -1,0 +1,37 @@
+---
+import Base from '../layouts/Base.astro';
+import MailtoForm from '../components/MailtoForm.astro';
+import { site } from '../data/site';
+---
+
+<Base title="Contacto" description="Escríbeme para hablar de tu proyecto, pedir presupuesto o colaborar.">
+  <section class="page-hero page-hero--terracotta">
+    <div class="wrap">
+      <p class="eyebrow">Hablemos</p>
+      <h1>Contacto</h1>
+      <p>
+        ¿Tienes un proyecto en mente? Cuéntame tu idea o escríbeme directamente a  
+        <span> <a href={`mailto:${site.email}`}>{site.email}</a></span>.
+      </p>
+    </div>
+  </section>
+
+  <section class="section contact">
+    <div class="wrap contact__box">
+      <MailtoForm variant="contact" id="contacto" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .contact {
+    background: var(--sand);
+  }
+  .contact__box {
+    max-width: 720px;
+  }
+  .page-hero a {
+    color: #fff;
+    text-decoration: underline;
+  }
+</style>

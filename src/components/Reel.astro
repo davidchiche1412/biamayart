@@ -1,0 +1,941 @@
+---
+import { getImage } from 'astro:assets';
+import Icon from './Icon.astro';
+import { imageOf } from '../data/artworks';
+import { lengthOf, type Reel } from '../data/reels';
+
+interface Props {
+  reel: Reel;
+}
+
+const { reel } = Astro.props;
+
+const lens = reel.clips.map(lengthOf);
+const starts = lens.map((_, i) => lens.slice(0, i).reduce((a, b) => a + b, 0));
+const total = lens.reduce((a, b) => a + b, 0);
+const span = 200 + total; // entrada (100) + recorrido fijado (total) + salida (100), en dvh
+
+const clips = await Promise.all(
+  reel.clips.map(async (c, i) => ({
+    ...c,
+    start: starts[i],
+    len: lens[i],
+    poster: await getImage({ src: imageOf(c.poster), width: 900, format: 'webp', quality: 78 }),
+    backdrop: await getImage({ src: imageOf(c.poster), width: 320, format: 'webp', quality: 60 }),
+  })),
+);
+
+// Cada pieza flotante cruza la pantalla en una "ventana" de scroll distinta: así siempre hay 2-3 volando a la vez
+const presets = [
+  { x: 2, w: 17, y: 78, s: [0.82, 1.14], r: [-7, 3], o: 0.95, l: 150 },
+  { x: 80, w: 15, y: 70, s: [0.8, 1.1], r: [6, -3], o: 0.95, l: 160 },
+  { x: 14, w: 10, y: 60, s: [0.7, 0.95], r: [4, -5], o: 0.7, l: 190 },
+  { x: 86, w: 11, y: 64, s: [0.7, 0.98], r: [-5, 4], o: 0.7, l: 180 },
+  { x: 4, w: 14, y: 72, s: [0.85, 1.2], r: [5, -4], o: 0.9, l: 150 },
+  { x: 77, w: 18, y: 80, s: [0.8, 1.16], r: [-6, 2], o: 0.95, l: 145 },
+  { x: 10, w: 12, y: 66, s: [0.75, 1.0], r: [-3, 6], o: 0.8, l: 170 },
+];
+
+const floats = await Promise.all(
+  reel.floats.map(async (id, i) => {
+    const p = presets[i % presets.length];
+    const meta = imageOf(id);
+    const img = await getImage({ src: meta, width: 520, format: 'webp', quality: 76 });
+    const a = Math.round((i / Math.max(reel.floats.length - 1, 1)) * (span - p.l));
+    return { id, p, img, ratio: meta.width / meta.height, a };
+  }),
+);
+
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<section
+  class="reel"
+  data-reel
+  data-total={total}
+  aria-label={`${reel.chapter}: ${reel.title}`}
+  style={`--total:${total};`}
+>
+  <div class="reel__stage">
+    <div class="reel__frame">
+      <div class="reel__bgs" aria-hidden="true">
+        {
+          clips.map((c, i) => (
+            <img
+              class:list={['bg', { 'bg--first': i === 0, 'bg--last': i === clips.length - 1 }]}
+              src={c.backdrop.src}
+              alt=""
+              style={`--s:${c.start};--len:${c.len};`}
+              decoding="async"
+            />
+          ))
+        }
+      </div>
+
+      <p class="reel__title" aria-hidden="true">{reel.title}</p>
+
+      <div class="reel__floats" aria-hidden="true">
+        {
+          floats.map((f) => (
+            <img
+              class="float"
+              src={f.img.src}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              width={f.img.attributes.width}
+              height={f.img.attributes.height}
+              style={`--x:${f.p.x}%;--w:${f.p.w};--ar:${f.ratio.toFixed(3)};--y:${f.p.y}dvh;--s0:${f.p.s[0]};--s1:${f.p.s[1]};--r0:${f.p.r[0]}deg;--r1:${f.p.r[1]}deg;--o:${f.p.o};--a:${f.a};--l:${f.p.l};`}
+            />
+          ))
+        }
+      </div>
+
+      <div class="reel__clips">
+        {
+          clips.map((c, i) => (
+            <figure
+              class:list={['clip', { 'clip--first': i === 0, 'clip--last': i === clips.length - 1 }]}
+              data-clip
+              data-state="idle"
+              style={`--s:${c.start};--len:${c.len};--ar:${c.ratio.toFixed(4)};`}
+            >
+              <div class="clip__frame">
+                <video
+                  muted
+                  playsinline
+                  preload="none"
+                  disablepictureinpicture
+                  poster={c.poster.src}
+                  data-src={c.src}
+                  aria-label={c.alt}
+                />
+              </div>
+              <figcaption class="clip__static">{c.caption}</figcaption>
+            </figure>
+          ))
+        }
+      </div>
+
+      <div class="reel__shade" aria-hidden="true"></div>
+
+      <div class="hud">
+        <p class="hud__kicker">
+          <span>{reel.chapter}</span>
+          <span class="hud__sep"></span>
+          <span>{reel.title}</span>
+        </p>
+
+        <div class="hud__body" aria-hidden="true">
+          {
+            clips.map((c, i) => (
+              <p
+                class:list={['cap', { 'cap--first': i === 0, 'cap--last': i === clips.length - 1 }]}
+                style={`--s:${c.start};--len:${c.len};`}
+              >
+                <span class="cap__n">{pad(i + 1)}<small>/{pad(clips.length)}</small></span>
+                <span class="cap__t">{c.caption}</span>
+              </p>
+            ))
+          }
+        </div>
+
+        <p class="hud__blurb">{reel.blurb}</p>
+        <a class="hud__cta" href={`/proyectos/${reel.projectSlug}`}>
+          Ver el proyecto <Icon name="arrow" size={18} />
+        </a>
+
+        <div class="rail" aria-hidden="true">
+          <span class="rail__fill"></span>
+          {clips.map((c) => <span class="rail__tick" style={`--s:${c.start};`} />)}
+        </div>
+
+        <p class="hud__hint" aria-hidden="true">
+          <span>Desliza</span>
+          <i></i>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ---------- Base: sin animaciones por scroll (reduced-motion / navegadores sin soporte) ---------- */
+  .reel {
+    background: #14100f;
+    color: var(--cream);
+    padding: clamp(3rem, 8vw, 6rem) 0;
+  }
+  .reel__stage {
+    width: min(100% - 2.5rem, 980px);
+    margin-inline: auto;
+  }
+  .reel__frame {
+    display: grid;
+    gap: 2rem;
+  }
+  .reel__bgs,
+  .reel__title,
+  .reel__floats,
+  .reel__shade,
+  .hud__body,
+  .hud__hint,
+  .rail {
+    display: none;
+  }
+  .reel__clips {
+    display: grid;
+    gap: 2.5rem;
+  }
+  .clip {
+    margin: 0;
+    display: grid;
+    justify-items: center;
+    gap: 0.75rem;
+  }
+  .clip__frame {
+    width: 100%;
+    max-width: calc(80dvh * var(--ar));
+    aspect-ratio: var(--ar);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #000;
+  }
+  .clip__frame video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .clip__static {
+    font-size: 0.9rem;
+    color: #cfc7b8;
+  }
+  .hud {
+    display: grid;
+    gap: 0.9rem;
+    order: -1;
+  }
+  .hud__kicker {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 0;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #fbe3cb;
+  }
+  .hud__sep {
+    width: 2.5rem;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.6;
+  }
+  .hud__blurb {
+    margin: 0;
+    max-width: 55ch;
+    font-family: var(--font-display);
+    font-size: clamp(1.2rem, 2.6vw, 1.7rem);
+    line-height: 1.35;
+  }
+  .hud__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: fit-content;
+    color: var(--peach);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 2px;
+  }
+  .hud__cta:hover {
+    color: #fff;
+  }
+
+  /* ---------- Modo inmersivo: CSS Scroll-Driven Animations ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .reel {
+        --seam: 26;
+        position: relative;
+        height: calc(100dvh + var(--total) * 1dvh);
+        padding: 0;
+        background: var(--sand);
+        /* La línea de tiempo de toda la sección: cover = desde que asoma por abajo hasta que sale por arriba */
+        view-timeline: --reel block;
+      }
+      .reel__stage {
+        position: sticky;
+        top: 0;
+        width: 100%;
+        height: 100dvh;
+        margin: 0;
+        overflow: clip;
+      }
+      .reel__frame {
+        position: relative;
+        display: block;
+        height: 100%;
+        overflow: clip;
+        background: #14100f;
+        transform-origin: 50% 50%;
+        animation-name: frame-in, frame-out;
+        animation-fill-mode: both, forwards;
+        animation-timing-function: cubic-bezier(0.22, 0.8, 0.3, 1), ease-in;
+        animation-timeline: --reel, --reel;
+        animation-range:
+          cover 0dvh cover 100dvh,
+          cover calc((100 + var(--total)) * 1dvh) cover calc((200 + var(--total)) * 1dvh);
+      }
+
+      .reel__bgs,
+      .reel__title,
+      .reel__floats,
+      .reel__shade,
+      .hud__body,
+      .hud__hint,
+      .rail {
+        display: block;
+      }
+      .clip__static {
+        display: none;
+      }
+      .reel__clips {
+        display: block;
+      }
+
+      /* Fondo difuminado con los colores del clip activo */
+      .reel__bgs,
+      .reel__clips,
+      .reel__floats,
+      .reel__shade {
+        position: absolute;
+        inset: 0;
+      }
+      .reel__floats,
+      .reel__shade {
+        pointer-events: none;
+      }
+      .bg {
+        position: absolute;
+        inset: -12%;
+        width: 124%;
+        height: 124%;
+        object-fit: cover;
+        filter: blur(48px) saturate(1.5) brightness(0.7);
+        animation-name: fade-in, fade-out;
+        animation-fill-mode: both, forwards;
+        animation-timing-function: linear;
+        animation-timeline: --reel, --reel;
+        animation-range:
+          cover calc((100 + var(--s) - var(--seam)) * 1dvh) cover calc((100 + var(--s) + var(--seam)) * 1dvh),
+          cover calc((100 + var(--s) + var(--len) - var(--seam)) * 1dvh) cover calc((100 + var(--s) + var(--len) + var(--seam)) * 1dvh);
+      }
+      .bg--first {
+        animation-name: none, fade-out;
+      }
+      .bg--last {
+        animation-name: fade-in, none;
+      }
+      .bg--first.bg--last {
+        animation-name: none;
+      }
+
+      /* Título gigante que cruza la pantalla por detrás de todo */
+      .reel__title {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        margin: 0;
+        white-space: nowrap;
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: clamp(9rem, 34vw, 32rem);
+        line-height: 0.8;
+        color: transparent;
+        -webkit-text-stroke: 1.5px rgb(243 238 227 / 0.28);
+        pointer-events: none;
+        animation: title-run linear both;
+        animation-timeline: --reel;
+        animation-range: cover 0dvh cover calc((200 + var(--total)) * 1dvh);
+      }
+
+      /* Piezas que vuelan alrededor como si la cámara atravesara el mundo del proyecto */
+      .float {
+        position: absolute;
+        left: var(--x);
+        top: 50%;
+        width: calc(var(--w) * 1vw);
+        aspect-ratio: var(--ar);
+        object-fit: cover;
+        border-radius: 10px;
+        box-shadow: 0 24px 60px rgb(0 0 0 / 0.55);
+        opacity: 0;
+        animation: fly linear both;
+        animation-timeline: --reel;
+        animation-range: cover calc(var(--a) * 1dvh) cover calc((var(--a) + var(--l)) * 1dvh);
+      }
+
+      .clip {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        will-change: transform, opacity;
+        animation-name: clip-in, clip-out;
+        animation-fill-mode: both, forwards;
+        animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1), cubic-bezier(0.6, 0, 0.9, 0.4);
+        animation-timeline: --reel, --reel;
+        animation-range:
+          cover calc((100 + var(--s) - var(--seam)) * 1dvh) cover calc((100 + var(--s) + var(--seam)) * 1dvh),
+          cover calc((100 + var(--s) + var(--len) - var(--seam)) * 1dvh) cover calc((100 + var(--s) + var(--len) + var(--seam)) * 1dvh);
+      }
+      .clip--first {
+        animation-name: none, clip-out;
+      }
+      .clip--last {
+        animation-name: clip-in, none;
+      }
+      .clip--first.clip--last {
+        animation-name: none;
+      }
+      .clip__frame {
+        position: relative;
+        width: auto;
+        max-width: none;
+        height: min(86dvh, calc(92vw / var(--ar)));
+        border-radius: 18px;
+        box-shadow:
+          0 40px 120px rgb(0 0 0 / 0.6),
+          0 0 0 1px rgb(243 238 227 / 0.12);
+        /* Deriva de cámara durante todo el clip */
+        animation: drift linear both;
+        animation-timeline: --reel;
+        animation-range:
+          cover calc((100 + var(--s) - var(--seam)) * 1dvh)
+          cover calc((100 + var(--s) + var(--len) + var(--seam)) * 1dvh);
+      }
+      .clip__frame video {
+        /* Empuje de cámara hacia dentro del clip */
+        animation: push linear both;
+        animation-timeline: --reel;
+        animation-range:
+          cover calc((100 + var(--s) - var(--seam)) * 1dvh)
+          cover calc((100 + var(--s) + var(--len) + var(--seam)) * 1dvh);
+      }
+      .clip[data-state='loading'] .clip__frame::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 3px solid rgb(243 238 227 / 0.25);
+        border-top-color: var(--peach);
+        animation: spin 0.9s linear infinite;
+        animation-timeline: auto;
+      }
+
+      .reel__shade {
+        background:
+          radial-gradient(120% 90% at 50% 45%, transparent 45%, rgb(8 6 5 / 0.65) 100%),
+          linear-gradient(to top, rgb(8 6 5 / 0.75), transparent 35%),
+          linear-gradient(to bottom, rgb(8 6 5 / 0.55), transparent 22%);
+      }
+
+      /* HUD */
+      .hud {
+        position: absolute;
+        inset: 0;
+        display: block;
+        padding: clamp(1rem, 3vw, 2.25rem);
+        pointer-events: none;
+      }
+      .hud > * {
+        position: absolute;
+      }
+      .hud__kicker {
+        top: clamp(1rem, 3vw, 2.25rem);
+        left: clamp(1rem, 4vw, 3rem);
+        animation: fade-out linear forwards;
+        animation-timeline: --reel;
+        animation-range: cover 130dvh cover 190dvh;
+      }
+      .hud__blurb {
+        left: clamp(1rem, 4vw, 3rem);
+        top: 50%;
+        width: min(30ch, 30vw);
+        font-size: clamp(1rem, 1.7vw, 1.5rem);
+        color: #fff;
+        text-shadow:
+          0 2px 24px rgb(0 0 0 / 0.9),
+          0 0 3px rgb(0 0 0 / 0.8);
+        animation: blurb linear both;
+        animation-timeline: --reel;
+        animation-range: cover 70dvh cover 230dvh;
+      }
+      .hud__cta {
+        right: clamp(1rem, 4vw, 3rem);
+        bottom: clamp(3rem, 6vw, 4.5rem);
+        pointer-events: auto;
+        animation: fade-in linear both;
+        animation-timeline: --reel;
+        animation-range: cover 80dvh cover 140dvh;
+      }
+      .hud__body {
+        left: clamp(1rem, 4vw, 3rem);
+        bottom: clamp(3rem, 6vw, 4.5rem);
+        width: min(80%, 34rem);
+        height: 5rem;
+      }
+      .cap {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        margin: 0;
+        display: flex;
+        align-items: baseline;
+        gap: 1rem;
+        animation-name: cap-in, cap-out;
+        animation-fill-mode: both, forwards;
+        animation-timing-function: ease-out, ease-in;
+        animation-timeline: --reel, --reel;
+        animation-range:
+          cover calc((100 + var(--s) - 8) * 1dvh) cover calc((100 + var(--s) + 12) * 1dvh),
+          cover calc((100 + var(--s) + var(--len) - 12) * 1dvh) cover calc((100 + var(--s) + var(--len) + 8) * 1dvh);
+      }
+      .cap--first {
+        animation-name: none, cap-out;
+      }
+      .cap--last {
+        animation-name: cap-in, none;
+      }
+      .cap--first.cap--last {
+        animation-name: none;
+      }
+      .cap__n {
+        font-family: var(--font-display);
+        font-size: clamp(2.2rem, 5vw, 4rem);
+        line-height: 1;
+        color: var(--peach);
+      }
+      .cap__n small {
+        font-size: 0.4em;
+        color: rgb(243 238 227 / 0.7);
+        margin-left: 0.15em;
+      }
+      .cap__t {
+        font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+        text-shadow: 0 2px 14px rgb(0 0 0 / 0.7);
+      }
+
+      .rail {
+        left: clamp(1rem, 4vw, 3rem);
+        right: clamp(1rem, 4vw, 3rem);
+        bottom: clamp(1.25rem, 3vw, 2rem);
+        height: 3px;
+        background: rgb(243 238 227 / 0.22);
+        border-radius: 3px;
+      }
+      .rail__fill {
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--peach), #fff);
+        transform-origin: left;
+        animation: rail linear both;
+        animation-timeline: --reel;
+        animation-range: cover 100dvh cover calc((100 + var(--total)) * 1dvh);
+      }
+      .rail__tick {
+        position: absolute;
+        top: -4px;
+        left: calc(var(--s) / var(--total) * 100%);
+        width: 2px;
+        height: 11px;
+        background: rgb(243 238 227 / 0.6);
+      }
+
+      .hud__hint {
+        left: 50%;
+        bottom: clamp(3rem, 6vw, 4.5rem);
+        translate: -50% 0;
+        margin: 0;
+        display: grid;
+        justify-items: center;
+        gap: 0.5rem;
+        font-size: 0.7rem;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        animation: fade-out linear forwards;
+        animation-timeline: --reel;
+        animation-range: cover 100dvh cover 150dvh;
+      }
+      .hud__hint i {
+        width: 1px;
+        height: 38px;
+        background: linear-gradient(var(--peach), transparent);
+        transform-origin: top;
+        animation: hint 1.6s ease-in-out infinite;
+        animation-timeline: auto;
+      }
+
+      @media (max-width: 800px) {
+        .float {
+          width: calc(var(--w) * 2.2vw);
+          left: calc(var(--x) - 8%);
+        }
+        .hud__blurb {
+          display: none;
+        }
+        .hud__cta {
+          right: auto;
+          left: clamp(1rem, 4vw, 3rem);
+          bottom: 7.5rem;
+        }
+        .hud__body {
+          bottom: 3.75rem;
+        }
+      }
+    }
+  }
+
+  @keyframes frame-in {
+    from {
+      scale: 0.84;
+      border-radius: 56px;
+    }
+    to {
+      scale: 1;
+      border-radius: 0;
+    }
+  }
+  @keyframes frame-out {
+    from {
+      scale: 1;
+      border-radius: 0;
+    }
+    to {
+      scale: 0.88;
+      border-radius: 56px;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+  /* El clip entrante "llega" desde el fondo; el saliente se abalanza sobre la cámara y la atraviesa */
+  @keyframes clip-in {
+    from {
+      opacity: 0;
+      scale: 0.82;
+      translate: 0 7dvh;
+      filter: blur(14px) brightness(1.6);
+    }
+    to {
+      opacity: 1;
+      scale: 1;
+      translate: 0 0;
+      filter: blur(0) brightness(1);
+    }
+  }
+  @keyframes clip-out {
+    from {
+      opacity: 1;
+      scale: 1;
+      filter: blur(0) brightness(1);
+    }
+    to {
+      opacity: 0;
+      scale: 1.5;
+      filter: blur(16px) brightness(1.8);
+    }
+  }
+  @keyframes drift {
+    from {
+      translate: 0 -2.2dvh;
+      rotate: -0.7deg;
+    }
+    to {
+      translate: 0 2.2dvh;
+      rotate: 0.7deg;
+    }
+  }
+  @keyframes push {
+    from {
+      scale: 1.02;
+    }
+    to {
+      scale: 1.16;
+    }
+  }
+  @keyframes fly {
+    0% {
+      opacity: 0;
+      translate: 0 calc(-50% + var(--y));
+      scale: var(--s0);
+      rotate: var(--r0);
+    }
+    14% {
+      opacity: var(--o);
+    }
+    86% {
+      opacity: var(--o);
+    }
+    100% {
+      opacity: 0;
+      translate: 0 calc(-50% - var(--y));
+      scale: var(--s1);
+      rotate: var(--r1);
+    }
+  }
+  @keyframes title-run {
+    from {
+      translate: 12vw -50%;
+    }
+    to {
+      translate: calc(-100% + 88vw) -50%;
+    }
+  }
+  @keyframes cap-in {
+    from {
+      opacity: 0;
+      translate: 0 28px;
+      filter: blur(8px);
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+      filter: blur(0);
+    }
+  }
+  @keyframes cap-out {
+    from {
+      opacity: 1;
+      translate: 0 0;
+    }
+    to {
+      opacity: 0;
+      translate: 0 -28px;
+    }
+  }
+  @keyframes blurb {
+    from {
+      opacity: 0;
+      translate: -24px -50%;
+    }
+    30%,
+    70% {
+      opacity: 1;
+      translate: 0 -50%;
+    }
+    to {
+      opacity: 0;
+      translate: 0 calc(-50% - 24px);
+    }
+  }
+  @keyframes rail {
+    from {
+      scale: 0 1;
+    }
+    to {
+      scale: 1 1;
+    }
+  }
+  @keyframes spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+  @keyframes hint {
+    0%,
+    100% {
+      scale: 1 0.3;
+    }
+    50% {
+      scale: 1 1;
+    }
+  }
+</style>
+
+<script>
+  const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const immersiveOk =
+    CSS.supports('animation-timeline: view()') && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  type ClipState = {
+    el: HTMLElement;
+    video: HTMLVideoElement;
+    start: number;
+    len: number;
+    dur: number;
+    cur: number;
+    loaded: boolean;
+    loading: boolean;
+    lastSeek: number;
+  };
+
+  // Descarga el clip entero como blob: así cada seek es local y no depende de peticiones Range
+  const load = async (c: ClipState) => {
+    if (c.loading || c.loaded) return;
+    c.loading = true;
+    c.el.dataset.state = 'loading';
+    try {
+      const res = await fetch(c.video.dataset.src!, { priority: 'low' } as RequestInit);
+      const url = URL.createObjectURL(await res.blob());
+      await new Promise<void>((resolve, reject) => {
+        c.video.addEventListener('loadedmetadata', () => resolve(), { once: true });
+        c.video.addEventListener('error', () => reject(), { once: true });
+        c.video.src = url;
+      });
+      c.dur = c.video.duration;
+      c.loaded = true;
+      c.el.dataset.state = 'ready';
+    } catch {
+      c.video.src = c.video.dataset.src!;
+      c.el.dataset.state = 'ready';
+      c.loaded = true;
+      c.dur = c.video.duration || 0;
+    }
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-reel]').forEach((reel) => {
+    const total = Number(reel.dataset.total);
+    const clips: ClipState[] = [...reel.querySelectorAll<HTMLElement>('[data-clip]')].map((el) => {
+      const video = el.querySelector('video')!;
+      const style = getComputedStyle(el);
+      return {
+        el,
+        video,
+        start: parseFloat(style.getPropertyValue('--s')),
+        len: parseFloat(style.getPropertyValue('--len')),
+        dur: 0,
+        cur: 0,
+        loaded: false,
+        loading: false,
+        lastSeek: 0,
+      };
+    });
+
+    // Carga progresiva: el primer clip cuando la sección está a una pantalla de distancia (y la página ya cargó);
+    // los siguientes, a medida que el recorrido se acerca a ellos
+    const preload = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        preload.disconnect();
+        // Con «ahorro de datos» no se precarga nada: el clip se descarga al llegar a la sección
+        if ((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData) return;
+        // Espera a que la página esté en reposo para no competir con las imágenes críticas
+        const go = () => ('requestIdleCallback' in window ? requestIdleCallback(() => load(clips[0]), { timeout: 4000 }) : setTimeout(() => load(clips[0]), 1500));
+        if (document.readyState === 'complete') go();
+        else window.addEventListener('load', go, { once: true });
+      },
+      { rootMargin: '80% 0px' },
+    );
+    preload.observe(reel);
+
+    if (!immersiveOk) {
+      // Modo estático: vídeos normales con controles, cargados cuando la sección se acerca
+      const loadAll = async () => {
+        for (const c of clips) await load(c);
+      };
+      preload.disconnect();
+      new IntersectionObserver(
+        (entries, obs) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            obs.disconnect();
+            loadAll();
+          }
+        },
+        { rootMargin: '100% 0px' },
+      ).observe(reel);
+      clips.forEach((c) => {
+        c.video.controls = true;
+        c.video.loop = true;
+        c.video.preload = 'metadata';
+      });
+      return;
+    }
+
+    let running = false;
+    let last = performance.now();
+
+    const tick = (now: number) => {
+      if (!running) return;
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      const rect = reel.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const scrollable = rect.height - vh;
+      const pinned = clamp(-rect.top / scrollable) * total; // en dvh de recorrido
+
+      const k = 1 - Math.exp(-dt * 10);
+      // Aunque se haga scroll rápido, el vídeo nunca avanza a más de 2,5× la velocidad real
+      const maxStep = dt * 2.5;
+      for (const c of clips) {
+        if (!c.loaded && !c.loading && pinned > c.start - 120) load(c);
+        if (!c.loaded || !c.dur) continue;
+        const near = pinned > c.start - 45 && pinned < c.start + c.len + 45;
+        if (!near) continue;
+        const target = clamp((pinned - c.start) / c.len) * c.dur;
+        const step = clamp((target - c.cur) * k, -maxStep, maxStep);
+        c.cur = Math.abs(target - c.cur) < 0.004 ? target : c.cur + step;
+        const wanted = Math.min(c.dur - 0.05, c.cur);
+        if (Math.abs(c.video.currentTime - wanted) > 0.025 && (!c.video.seeking || now - c.lastSeek > 120)) {
+          c.video.currentTime = wanted;
+          c.lastSeek = now;
+        }
+      }
+
+      requestAnimationFrame(tick);
+    };
+
+    const live = new IntersectionObserver(
+      (entries) => {
+        const on = entries.some((e) => e.isIntersecting);
+        if (on && !running) {
+          running = true;
+          last = performance.now();
+          requestAnimationFrame(tick);
+        } else if (!on) {
+          running = false;
+        }
+      },
+      { rootMargin: '20% 0px' },
+    );
+    live.observe(reel);
+  });
+
+  // Mientras un recorrido está fijado, la barra superior se esconde; reaparece al subir
+  if (immersiveOk) {
+    const root = document.documentElement;
+    let lastY = window.scrollY;
+    const update = () => {
+      const y = window.scrollY;
+      const up = y < lastY - 6;
+      const pinned = [...document.querySelectorAll<HTMLElement>('[data-reel]')].some((r) => {
+        const b = r.getBoundingClientRect();
+        return b.top <= 0 && b.bottom >= window.innerHeight;
+      });
+      if (pinned && !up) root.dataset.immersive = '';
+      else if (!pinned || up) delete root.dataset.immersive;
+      if (Math.abs(y - lastY) > 6) lastY = y;
+    };
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+</script>

@@ -1,0 +1,102 @@
+---
+import Base from '../layouts/Base.astro';
+import Gallery from '../components/Gallery.astro';
+import GalleryFilters from '../components/GalleryFilters.astro';
+import Reel from '../components/Reel.astro';
+import Testimonials from '../components/Testimonials.astro';
+import { artworks } from '../data/artworks';
+import { reels } from '../data/reels';
+import { site } from '../data/site';
+import { testimonials } from '../data/testimonials';
+
+// Los vídeos viven en los recorridos; el mosaico solo lleva imágenes
+const stills = artworks.filter((a) => !a.video);
+const chunks = [stills.slice(0, 9), stills.slice(9, 21), stills.slice(21)];
+---
+<Base>
+  <section class="intro">
+    <div class="wrap intro__inner">
+      <h1>{site.tagline}</h1>
+      <div class="intro__cta">
+        <a class="btn btn--peach" href="/proyectos/editorial">Ilustración editorial</a>
+        <a class="btn btn--ghost-light" href="/proyectos">Mis proyectos</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="exhibit exhibit--head" aria-label="Filtros del expositor">
+    <div class="wrap">
+      <GalleryFilters filters={['sibalia', 'don-de-dios', 'vendaval', 'editorial']} />
+    </div>
+  </section>
+
+  <div class="exhibit">
+    <div class="wrap">
+      <Gallery items={chunks[0]} id="mosaico-1" priority />
+    </div>
+  </div>
+
+  <Reel reel={reels[0]} />
+
+  <div class="exhibit">
+    <div class="wrap">
+      <Gallery items={chunks[1]} id="mosaico-2" />
+    </div>
+  </div>
+
+  <Reel reel={reels[1]} />
+
+  <div class="exhibit">
+    <div class="wrap">
+      <Gallery items={chunks[2]} id="mosaico-3" />
+    </div>
+  </div>
+
+  <Testimonials items={testimonials} />
+</Base>
+
+<style>
+  .intro {
+    background: var(--sage-dark);
+    color: var(--cream);
+    padding: calc(var(--nav-h) + clamp(1.75rem, 4vw, 3rem)) 0 clamp(1.75rem, 4vw, 3rem);
+  }
+  .intro__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .intro h1 {
+    margin: 0;
+    max-width: 22ch;
+    font-size: clamp(1.8rem, 3.6vw, 2.8rem);
+  }
+  .intro__cta {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+  .btn--ghost-light {
+    background: transparent;
+    border-color: var(--cream);
+    color: var(--cream);
+  }
+  .btn--ghost-light:hover {
+    background: var(--cream);
+    color: var(--sage-dark);
+    border-color: var(--cream);
+  }
+  .exhibit {
+    background: var(--sand);
+    padding-block: clamp(1.5rem, 3vw, 2.5rem);
+  }
+  .exhibit--head {
+    padding-bottom: 0;
+  }
+  /* Si un filtro deja vacío un tramo del mosaico, desaparece también su margen */
+  .exhibit:not(.exhibit--head):not(:has([data-gallery]:not([hidden]))) {
+    display: none;
+  }
+</style>

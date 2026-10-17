@@ -1,0 +1,71 @@
+---
+import { projectLabels, type ProjectSlug } from '../data/artworks';
+
+interface Props {
+  filters: ProjectSlug[];
+}
+
+const { filters } = Astro.props;
+---
+
+<div class="filters" role="group" aria-label="Filtrar por proyecto" data-filters>
+  <button type="button" class="chip" aria-pressed="true" data-filter="all">Todo</button>
+  {
+    filters.map((f) => (
+      <button type="button" class="chip" aria-pressed="false" data-filter={f}>
+        {projectLabels[f]}
+      </button>
+    ))
+  }
+  <p class="count" aria-live="polite" data-count></p>
+</div>
+
+<style>
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .chip {
+    font: 600 0.9rem/1 var(--font-body);
+    padding: 0.7rem 1.2rem;
+    border-radius: 999px;
+    border: 2px solid var(--terracotta);
+    background: transparent;
+    color: var(--terracotta-dark);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .chip:hover {
+    background: rgb(165 97 81 / 0.12);
+  }
+  .chip[aria-pressed='true'] {
+    background: var(--terracotta-dark);
+    border-color: var(--terracotta-dark);
+    color: #fff;
+  }
+  .count {
+    margin: 0 0 0 auto;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-filters]');
+  if (root) {
+    const chips = [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+    const count = root.querySelector<HTMLElement>('[data-count]')!;
+
+    const apply = (tag: string) => {
+      chips.forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.filter === tag)));
+      window.dispatchEvent(new CustomEvent('gallery:filter', { detail: tag }));
+      count.textContent = `${document.querySelectorAll('[data-gallery] .tile:not([hidden])').length} piezas`;
+    };
+
+    chips.forEach((c) => c.addEventListener('click', () => apply(c.dataset.filter!)));
+    // Los tramos de galería registran su listener al cargarse; se sincroniza el contador inicial
+    window.addEventListener('load', () => apply('all'));
+  }
+</script>

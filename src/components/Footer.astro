@@ -1,0 +1,114 @@
+---
+import Icon from './Icon.astro';
+import { nav, site, socials } from '../data/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="wrap footer__grid">
+    <div>
+      <p class="footer__title">Biamay Art</p>
+      <p class="footer__text">Ilustración editorial de fantasía y narrativa visual.</p>
+      <p><a class="footer__mail" href={`mailto:${site.email}`}>{site.email}</a></p>
+    </div>
+    <nav aria-label="Pie de página">
+      <ul class="footer__links">
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <ul class="footer__social" aria-label="Redes sociales">
+      {
+        socials.map((s) => (
+          <li>
+            <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}>
+              <Icon name={s.icon} size={22} />
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+  <p class="footer__legal wrap">© {year} Biamay Art · Beatriz Tamayo. Todas las ilustraciones son propiedad de la artista.</p>
+</footer>
+
+<style>
+  .footer {
+    background: var(--ink);
+    color: var(--cream);
+    padding-block: 3rem 2rem;
+  }
+  .footer__grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr auto;
+    gap: 2.5rem;
+    align-items: start;
+  }
+  .footer__title {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    margin-bottom: 0.3rem;
+  }
+  .footer__text {
+    color: #cfc7b8;
+    max-width: 34ch;
+  }
+  .footer__mail {
+    color: var(--peach);
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .footer__links {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 0.5rem 2rem;
+    justify-content: start;
+  }
+  .footer__links a {
+    text-decoration: none;
+  }
+  .footer__links a:hover {
+    color: var(--peach);
+    text-decoration: underline;
+  }
+  .footer__social {
+    display: flex;
+    gap: 1rem;
+  }
+  .footer__social a {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgb(243 238 227 / 0.35);
+    border-radius: 50%;
+    transition: background 0.2s, color 0.2s;
+  }
+  .footer__social a:hover {
+    background: var(--peach);
+    color: var(--ink);
+  }
+  .footer__legal {
+    margin: 2.5rem auto 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgb(243 238 227 / 0.18);
+    font-size: 0.85rem;
+    color: #cfc7b8;
+  }
+  @media (max-width: 760px) {
+    .footer__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
