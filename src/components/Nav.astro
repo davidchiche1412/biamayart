@@ -1,10 +1,11 @@
 ---
 import { Image } from 'astro:assets';
-import logo from '../assets/brand/logo.png';
-import avatar from '../assets/brand/3e17b3.jpg';
 import Icon from './Icon.astro';
-import { nav, socials } from '../data/site';
+import { getSite, getUi, sized } from '../lib/cms';
 import { stripBase, url } from '../lib/url';
+
+const { nav, socials, name, logo, avatar } = await getSite();
+const ui = await getUi();
 
 const path = stripBase(Astro.url.pathname).replace(/\/$/, '') || '/';
 const isActive = (href: string) => (href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`));
@@ -12,18 +13,18 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path === href 
 
 <header class="nav" data-nav>
   <div class="nav__inner wrap">
-    <a href={url('/')} class="nav__brand" aria-label="Biamay Art, ir a inicio">
-      <Image src={avatar} alt="" width={96} height={96} class="nav__avatar" loading="eager" />
-      <Image src={logo} alt="Biamay Art" width={260} class="nav__logo" loading="eager" />
+    <a href={url('/')} class="nav__brand" aria-label={ui.homeAria}>
+      <Image src={avatar.src} alt="" width={96} height={96} class="nav__avatar" loading="eager" />
+      <Image {...sized(logo, 260)} alt={name} class="nav__logo" loading="eager" />
     </a>
 
     <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-menu" data-nav-toggle>
-      <span class="sr-only">Abrir menú</span>
+      <span class="sr-only">{ui.openMenu}</span>
       <span data-icon-open><Icon name="menu" size={26} /></span>
       <span data-icon-close hidden><Icon name="close" size={26} /></span>
     </button>
 
-    <nav id="nav-menu" class="nav__menu" aria-label="Principal" data-nav-menu>
+    <nav id="nav-menu" class="nav__menu" aria-label={ui.mainNavAria} data-nav-menu>
       <ul class="nav__links">
         {
           nav.map((item) => (
@@ -34,13 +35,13 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path === href 
                 {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
               >
                 {item.label}
-                {item.external && <span class="sr-only"> (se abre en una pestaña nueva)</span>}
+                {item.external && <span class="sr-only"> {ui.newTabHint}</span>}
               </a>
             </li>
           ))
         }
       </ul>
-      <ul class="nav__social" aria-label="Redes sociales">
+      <ul class="nav__social" aria-label={ui.socialAria}>
         {
           socials.map((s) => (
             <li>

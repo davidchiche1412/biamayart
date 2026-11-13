@@ -3,6 +3,8 @@ name: Deploy a GitHub Pages
 on:
   push:
     branches: [main]
+  repository_dispatch:
+    types: [sanity-publish]
   workflow_dispatch:
 
 permissions:
@@ -28,6 +30,8 @@ jobs:
         env:
           ASTRO_SITE: https://davidchiche1412.github.io
           ASTRO_BASE: /biamayart
+          SANITY_PROJECT_ID: ${{ vars.SANITY_PROJECT_ID }}
+          SANITY_DATASET: ${{ vars.SANITY_DATASET }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

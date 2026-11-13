@@ -1,15 +1,18 @@
 ---
 import Base from '../layouts/Base.astro';
+import { getPage } from '../lib/cms';
 import { url } from '../lib/url';
+
+const page = await getPage('notFoundPage');
 ---
 
-<Base title="Página no encontrada" noindex>
+<Base title={page.seoTitle} noindex>
   <section class="nf">
     <div class="wrap">
-      <p class="eyebrow">Error 404</p>
-      <h1>Esta página se ha perdido en el bosque</h1>
-      <p>El enlace que buscas ya no existe o se ha movido.</p>
-      <p><a class="btn" href={url('/')}>Volver al inicio</a></p>
+      <p class="eyebrow">{page.eyebrow}</p>
+      <h1>{page.heading}</h1>
+      <p>{page.text}</p>
+      <p><a class="btn" href={url('/')}>{page.buttonLabel}</a></p>
     </div>
   </section>
 </Base>

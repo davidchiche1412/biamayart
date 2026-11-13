@@ -1,8 +1,7 @@
 ---
 import { getImage } from 'astro:assets';
 import Icon from './Icon.astro';
-import { imageOf } from '../data/artworks';
-import { lengthOf, type Reel } from '../data/reels';
+import { getUi, lengthOf, sized, type Reel } from '../lib/cms';
 import { url } from '../lib/url';
 
 interface Props {
@@ -10,6 +9,7 @@ interface Props {
 }
 
 const { reel } = Astro.props;
+const ui = await getUi();
 
 const lens = reel.clips.map(lengthOf);
 const starts = lens.map((_, i) => lens.slice(0, i).reduce((a, b) => a + b, 0));
@@ -21,8 +21,8 @@ const clips = await Promise.all(
     ...c,
     start: starts[i],
     len: lens[i],
-    poster: await getImage({ src: imageOf(c.poster), width: 900, format: 'webp', quality: 78 }),
-    backdrop: await getImage({ src: imageOf(c.poster), width: 320, format: 'webp', quality: 60 }),
+    poster: await getImage({ ...sized(c.poster, 900), format: 'webp', quality: 78 }),
+    backdrop: await getImage({ ...sized(c.poster, 320), format: 'webp', quality: 60 }),
   })),
 );
 
@@ -38,12 +38,11 @@ const presets = [
 ];
 
 const floats = await Promise.all(
-  reel.floats.map(async (id, i) => {
+  reel.floats.map(async (meta, i) => {
     const p = presets[i % presets.length];
-    const meta = imageOf(id);
-    const img = await getImage({ src: meta, width: 520, format: 'webp', quality: 76 });
+    const img = await getImage({ ...sized(meta, 520), format: 'webp', quality: 76 });
     const a = Math.round((i / Math.max(reel.floats.length - 1, 1)) * (span - p.l));
-    return { id, p, img, ratio: meta.width / meta.height, a };
+    return { p, img, ratio: meta.width / meta.height, a };
   }),
 );
 
@@ -108,7 +107,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
                   preload="none"
                   disablepictureinpicture
                   poster={c.poster.src}
-                  data-src={url(c.src)}
+                  data-src={c.src}
                   aria-label={c.alt}
                 />
               </div>
@@ -143,7 +142,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
         <p class="hud__blurb">{reel.blurb}</p>
         <a class="hud__cta" href={url(`/proyectos/${reel.projectSlug}`)}>
-          Ver el proyecto <Icon name="arrow" size={18} />
+          {ui.reelCta} <Icon name="arrow" size={18} />
         </a>
 
         <div class="rail" aria-hidden="true">
@@ -152,7 +151,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
         </div>
 
         <p class="hud__hint" aria-hidden="true">
-          <span>Desliza</span>
+          <span>{ui.reelHint}</span>
           <i></i>
         </p>
       </div>

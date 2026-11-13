@@ -1,19 +1,21 @@
 ---
 import Icon from './Icon.astro';
-import { nav, site, socials } from '../data/site';
+import { getSite, getUi } from '../lib/cms';
 import { url } from '../lib/url';
 
+const { nav, socials, name, footerText, copyright, email } = await getSite();
+const ui = await getUi();
 const year = new Date().getFullYear();
 ---
 
 <footer class="footer">
   <div class="wrap footer__grid">
     <div>
-      <p class="footer__title">Biamay Art</p>
-      <p class="footer__text">Ilustración editorial de fantasía y narrativa visual.</p>
-      <p><a class="footer__mail" href={`mailto:${site.email}`}>{site.email}</a></p>
+      <p class="footer__title">{name}</p>
+      <p class="footer__text">{footerText}</p>
+      <p><a class="footer__mail" href={`mailto:${email}`}>{email}</a></p>
     </div>
-    <nav aria-label="Pie de página">
+    <nav aria-label={ui.footerNavAria}>
       <ul class="footer__links">
         {
           nav.map((item) => (
@@ -26,7 +28,7 @@ const year = new Date().getFullYear();
         }
       </ul>
     </nav>
-    <ul class="footer__social" aria-label="Redes sociales">
+    <ul class="footer__social" aria-label={ui.socialAria}>
       {
         socials.map((s) => (
           <li>
@@ -38,7 +40,7 @@ const year = new Date().getFullYear();
       }
     </ul>
   </div>
-  <p class="footer__legal wrap">© {year} Biamay Art · Beatriz Tamayo. Todas las ilustraciones son propiedad de la artista.</p>
+  <p class="footer__legal wrap">© {year} {copyright}</p>
 </footer>
 
 <style>

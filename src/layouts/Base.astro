@@ -2,20 +2,23 @@
 import '../styles/global.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
-import { site } from '../data/site';
+import { getSite, getUi } from '../lib/cms';
 import { url } from '../lib/url';
 
 interface Props {
   title?: string;
   description?: string;
-  image?: string;
   noindex?: boolean;
 }
 
-const { title, description = site.description, image = '/og-image.jpg', noindex = false } = Astro.props;
-const fullTitle = title ? `${title} · ${site.name}` : `${site.name} · Ilustración editorial de fantasía`;
+const site = await getSite();
+const ui = await getUi();
+const { title, description = site.description, noindex = false } = Astro.props;
+const fullTitle = title ? `${title} · ${site.name}` : site.defaultTitle;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const ogImage = new URL(url(image), Astro.site);
+// public/ sigue siendo el respaldo si aún no se ha subido imagen a Sanity
+const ogImage = site.ogImage?.src ?? new URL(url('/og-image.jpg'), Astro.site).href;
+const favicon = site.favicon?.src ?? url('/favicon.png');
 ---
 
 <!doctype html>
@@ -26,7 +29,7 @@ const ogImage = new URL(url(image), Astro.site);
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/png" href={url('/favicon.png')} />
+    <link rel="icon" type="image/png" href={favicon} />
     <meta name="theme-color" content="#f3eee3" />
     {noindex && <meta name="robots" content="noindex" />}
     <meta property="og:type" content="website" />
@@ -42,16 +45,16 @@ const ogImage = new URL(url(image), Astro.site);
       set:html={JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'Person',
-        name: 'Beatriz Tamayo',
-        alternateName: 'Biamay Art',
-        jobTitle: 'Ilustradora editorial',
+        name: site.authorName,
+        alternateName: site.name,
+        jobTitle: site.jobTitle,
         url: Astro.site?.href,
         email: site.email,
-      })}
+      }).replace(/</g, '\\u003c')}
     />
   </head>
   <body>
-    <a class="skip-link" href="#main">Saltar al contenido</a>
+    <a class="skip-link" href="#main">{ui.skipLink}</a>
     <Nav />
     <main id="main">
       <slot />

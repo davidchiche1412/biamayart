@@ -4,30 +4,41 @@ import Gallery from '../components/Gallery.astro';
 import GalleryFilters from '../components/GalleryFilters.astro';
 import Reel from '../components/Reel.astro';
 import Testimonials from '../components/Testimonials.astro';
-import { artworks } from '../data/artworks';
-import { reels } from '../data/reels';
-import { site } from '../data/site';
+import { getArtworks, getPage, getProjects, getReels, getSite, getTestimonials, getUi } from '../lib/cms';
 import { url } from '../lib/url';
-import { testimonials } from '../data/testimonials';
+
+const [artworks, reels, testimonials, projects, site, page, ui] = await Promise.all([
+  getArtworks(),
+  getReels(),
+  getTestimonials(),
+  getProjects(),
+  getSite(),
+  getPage('homePage'),
+  getUi(),
+]);
 
 // Los vídeos viven en los recorridos; el mosaico solo lleva imágenes
 const stills = artworks.filter((a) => !a.video);
 const chunks = [stills.slice(0, 9), stills.slice(9, 21), stills.slice(21)];
+const filters = projects
+  .filter((p) => p.filterOrder !== undefined && p.filterOrder !== null)
+  .sort((a, b) => a.filterOrder! - b.filterOrder!)
+  .map((p) => ({ slug: p.slug, label: p.filterLabel ?? p.title }));
 ---
 <Base>
   <section class="intro">
     <div class="wrap intro__inner">
       <h1>{site.tagline}</h1>
       <div class="intro__cta">
-        <a class="btn btn--peach" href={url('/proyectos/editorial')}>Ilustración editorial</a>
-        <a class="btn btn--ghost-light" href={url('/proyectos')}>Mis proyectos</a>
+        <a class="btn btn--peach" href={url('/proyectos/editorial')}>{page.ctaPrimary}</a>
+        <a class="btn btn--ghost-light" href={url('/proyectos')}>{page.ctaSecondary}</a>
       </div>
     </div>
   </section>
 
-  <section class="exhibit exhibit--head" aria-label="Filtros del expositor">
+  <section class="exhibit exhibit--head" aria-label={ui.filtersSectionAria}>
     <div class="wrap">
-      <GalleryFilters filters={['sibalia', 'don-de-dios', 'vendaval', 'editorial']} />
+      <GalleryFilters filters={filters} />
     </div>
   </section>
 

@@ -1,78 +1,35 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
+import { getPage, html, sized } from '../lib/cms';
 import { url } from '../lib/url';
-import portrait from '../assets/brand/63163c.png';
-import backdrop from '../assets/brand/155fa4.jpg';
 
-const career = [
-  {
-    period: 'Julio 2022 – Octubre 2023',
-    role: 'Concept Artist',
-    company: 'Polygonal Mind',
-    text: 'Al finalizar mis estudios comencé a trabajar en Polygonal Mind, una empresa dedicada al desarrollo de experiencias interactivas para el Metaverso. Mi trabajo como artista conceptual se basó en el diseño de entornos y personajes originales.',
-  },
-  {
-    period: 'Octubre 2021 – Noviembre 2024',
-    role: 'Freelance',
-    company: 'Terebi Magazine',
-    text: 'Paralelamente, comencé a colaborar con Terebi Magazine, una revista española dirigida por mujeres y dedicada a hablar del mundo de los videojuegos. Con ella, he trabajado en la ilustración editorial, además de la maquetación de artículos.',
-  },
-  {
-    period: 'Junio 2021 – Actualidad',
-    role: 'Freelance',
-    company: 'Ilustradora editorial',
-    text: 'Desde que finalicé mis estudios en ilustración, he desarrollado mi carrera como ilustradora freelance. He trabajado realizando encargos personalizados para particulares, además de tener el privilegio de colaborar con autores en el ámbito editorial, aportando mi visión artística a sus obras. Destacan "Súper Martín contra el Coronavirus", publicado por Editorial Liberman, y "Tradición Oral en Jaén y Provincia" de Manuel Rodríguez, donde mis ilustraciones han servido para enriquecer y complementar sus narrativas.',
-  },
-];
+const page = await getPage('aboutPage');
 ---
 
-<Base
-  title="Sobre mí"
-  description="Soy Beatriz, ilustradora editorial especializada en fantasía y narrativa visual. Conoce mi trayectoria como artista conceptual y freelance."
->
+<Base title={page.seoTitle} description={page.seoDescription}>
   <section class="about">
-    <Image src={backdrop} alt="" class="about__bg" width={1600} loading="eager" />
+    <Image {...sized(page.backdrop, 1600)} alt="" class="about__bg" loading="eager" />
     <div class="wrap about__grid">
       <div class="about__text">
-        <p class="eyebrow">Sobre mí</p>
-        <h1>Hola, soy Beatriz</h1>
-        <p><strong>Ilustradora editorial especializada en fantasía y narrativa visual.</strong></p>
-        <p>
-          Desde pequeña el dibujo ha formado parte de mi vida, y con los años se convirtió en mi profesión. He trabajado
-          como artista conceptual en la industria de los videojuegos y, a lo largo de mi trayectoria, me he especializado
-          en la creación de personajes, mundos y escenas que acompañan y enriquecen el relato escrito.
-        </p>
-        <p>
-          La fantasía es el eje central de mi trabajo. Disfruto desarrollando historias, personajes y mundos, explorando
-          siempre nuevas formas de narrar a través de la imagen.
-        </p>
-        <p>
-          Además de encargos editoriales, trabajo en proyectos personales de novela ilustrada en los que construyo
-          universos fantásticos completos.
-        </p>
-        <p>Te invito a descubrir mis trabajos y a ponerte en contacto.</p>
+        <p class="eyebrow">{page.eyebrow}</p>
+        <h1>{page.heading}</h1>
+        <Fragment set:html={html(page.body)} />
         <p class="about__cta">
-          <a class="btn" href={url('/proyectos')}>Ver proyectos</a>
-          <a class="btn btn--ghost" href={url('/contacto')}>Contacto</a>
+          <a class="btn" href={url('/proyectos')}>{page.ctaProjects}</a>
+          <a class="btn btn--ghost" href={url('/contacto')}>{page.ctaContact}</a>
         </p>
       </div>
-      <Image
-        src={portrait}
-        alt="Retrato de Beatriz con auriculares haciendo el símbolo de la paz"
-        class="about__photo"
-        width={640}
-        loading="eager"
-      />
+      <Image {...sized(page.portrait, 640)} alt={page.portraitAlt} class="about__photo" loading="eager" />
     </div>
   </section>
 
   <section class="career section" aria-labelledby="career-title">
     <div class="wrap">
-      <h2 id="career-title">Carrera profesional</h2>
+      <h2 id="career-title">{page.careerTitle}</h2>
       <ol class="timeline">
         {
-          career.map((c) => (
+          page.career.map((c: { period: string; role: string; company: string; text: string }) => (
             <li>
               <p class="timeline__period">{c.period}</p>
               <div>

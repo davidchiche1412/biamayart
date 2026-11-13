@@ -1,54 +1,61 @@
 ---
+import { fill, getSite, getUi } from '../lib/cms';
+
 interface Props {
   variant: 'contact' | 'quote';
   id: string;
 }
 const { variant, id } = Astro.props;
 const isQuote = variant === 'quote';
-const subjectDefault = isQuote ? 'Solicitud de presupuesto' : '';
+const { email } = await getSite();
+const ui = await getUi();
+const subjectDefault = isQuote ? ui.formSubjectQuote : '';
 ---
 
 <form
   class="form"
   data-mailto-form
-  data-to={'artbarlert@gmail.com'}
+  data-to={email}
   data-default-subject={subjectDefault}
-  action="mailto:artbarlert@gmail.com"
+  data-fallback-subject={ui.formSubjectDefault}
+  data-label-name={ui.formName}
+  data-label-email={ui.formEmail}
+  action={`mailto:${email}`}
   method="post"
   enctype="text/plain"
 >
   <div class="row">
     <div class="field">
-      <label for={`${id}-name`}>Nombre <span aria-hidden="true">*</span></label>
+      <label for={`${id}-name`}>{ui.formName} <span aria-hidden="true">*</span></label>
       <input id={`${id}-name`} name="nombre" type="text" autocomplete="given-name" required />
     </div>
     {
       isQuote && (
         <div class="field">
-          <label for={`${id}-surname`}>Apellidos</label>
+          <label for={`${id}-surname`}>{ui.formSurname}</label>
           <input id={`${id}-surname`} name="apellidos" type="text" autocomplete="family-name" />
         </div>
       )
     }
   </div>
   <div class="field">
-    <label for={`${id}-email`}>Email <span aria-hidden="true">*</span></label>
+    <label for={`${id}-email`}>{ui.formEmail} <span aria-hidden="true">*</span></label>
     <input id={`${id}-email`} name="email" type="email" autocomplete="email" required />
   </div>
   {
     !isQuote && (
       <div class="field">
-        <label for={`${id}-subject`}>Asunto</label>
+        <label for={`${id}-subject`}>{ui.formSubject}</label>
         <input id={`${id}-subject`} name="asunto" type="text" />
       </div>
     )
   }
   <div class="field">
-    <label for={`${id}-message`}>{isQuote ? 'Cuéntame tu proyecto' : 'Mensaje'}</label>
+    <label for={`${id}-message`}>{isQuote ? ui.formMessageQuote : ui.formMessage}</label>
     <textarea id={`${id}-message`} name="mensaje" rows="6" required={!isQuote}></textarea>
   </div>
-  <button class="btn" type="submit">Enviar</button>
-  <p class="hint">Se abrirá tu aplicación de correo con el mensaje ya preparado para enviar a artbarlert@gmail.com.</p>
+  <button class="btn" type="submit">{ui.formSubmit}</button>
+  <p class="hint">{fill(ui.formHint, { email })}</p>
 </form>
 
 <style>
@@ -103,8 +110,8 @@ const subjectDefault = isQuote ? 'Solicitud de presupuesto' : '';
       const data = new FormData(form);
       const get = (k: string) => String(data.get(k) ?? '').trim();
       const fullName = [get('nombre'), get('apellidos')].filter(Boolean).join(' ');
-      const subject = get('asunto') || form.dataset.defaultSubject || 'Contacto desde la web';
-      const body = [`Nombre: ${fullName}`, `Email: ${get('email')}`, '', get('mensaje')].join('\n');
+      const subject = get('asunto') || form.dataset.defaultSubject || form.dataset.fallbackSubject || '';
+      const body = [`${form.dataset.labelName}: ${fullName}`, `${form.dataset.labelEmail}: ${get('email')}`, '', get('mensaje')].join('\n');
       window.location.href = `mailto:${form.dataset.to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
   });

@@ -1,17 +1,20 @@
 ---
 import Base from '../layouts/Base.astro';
 import MailtoForm from '../components/MailtoForm.astro';
-import { site } from '../data/site';
+import { getPage, getSite } from '../lib/cms';
+
+const page = await getPage('contactPage');
+const { email } = await getSite();
 ---
 
-<Base title="Contacto" description="Escríbeme para hablar de tu proyecto, pedir presupuesto o colaborar.">
+<Base title={page.seoTitle} description={page.seoDescription}>
   <section class="page-hero page-hero--terracotta">
     <div class="wrap">
-      <p class="eyebrow">Hablemos</p>
-      <h1>Contacto</h1>
+      <p class="eyebrow">{page.eyebrow}</p>
+      <h1>{page.heading}</h1>
       <p>
-        ¿Tienes un proyecto en mente? Cuéntame tu idea o escríbeme directamente a  
-        <span> <a href={`mailto:${site.email}`}>{site.email}</a></span>.
+        {page.intro}
+        <span> <a href={`mailto:${email}`}>{email}</a></span>.
       </p>
     </div>
   </section>

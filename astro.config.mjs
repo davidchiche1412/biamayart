@@ -7,6 +7,7 @@ export default defineConfig({
   site: process.env.ASTRO_SITE ?? 'https://www.biamayart.com',
   base: process.env.ASTRO_BASE ?? '/',
   build: { format: 'directory' },
+  image: { domains: ['cdn.sanity.io'] },
   trailingSlash: 'never',
   integrations: [sitemap()],
 });

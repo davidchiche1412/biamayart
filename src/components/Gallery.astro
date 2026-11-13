@@ -1,8 +1,7 @@
 ---
 import { getImage } from 'astro:assets';
 import Icon from './Icon.astro';
-import { imageOf, type Artwork } from '../data/artworks';
-import { url } from '../lib/url';
+import { getUi, sized, type Artwork } from '../lib/cms';
 
 interface Props {
   items: Artwork[];
@@ -12,18 +11,20 @@ interface Props {
 
 const { items, id = 'galeria', priority = false } = Astro.props;
 
+const ui = await getUi();
+
 const tiles = await Promise.all(
   items.map(async (item, i) => {
-    const meta = imageOf(item.id);
-    const thumb = await getImage({ src: meta, width: 900, format: 'webp', quality: 78 });
-    const small = await getImage({ src: meta, width: 480, format: 'webp', quality: 75 });
-    const full = await getImage({ src: meta, width: 2000, format: 'webp', quality: 85 });
+    const meta = item.image;
+    const thumb = await getImage({ ...sized(meta, 900), format: 'webp', quality: 78 });
+    const small = await getImage({ ...sized(meta, 480), format: 'webp', quality: 75 });
+    const full = await getImage({ ...sized(meta, 2000), format: 'webp', quality: 85 });
     return { ...item, thumb, small, full, ratio: meta.width / meta.height, eager: priority && i < 4 };
   }),
 );
 ---
 
-<section class="gallery" aria-label="Galería de ilustraciones" data-gallery>
+<section class="gallery" aria-label={ui.galleryAria} data-gallery>
   <div class="grid" id={id} data-grid>
     <ul class="col">
     {
@@ -34,10 +35,10 @@ const tiles = await Promise.all(
             class="tile__btn"
             data-open
             data-full={t.full.src}
-            data-video={t.video && url(t.video)}
+            data-video={t.video}
             data-alt={t.alt}
             style={`aspect-ratio:${t.ratio.toFixed(4)}`}
-            aria-label={`${t.video ? 'Reproducir' : 'Ampliar'}: ${t.alt}`}
+            aria-label={`${t.video ? ui.play : ui.enlarge}: ${t.alt}`}
           >
             <img
               src={t.thumb.src}
@@ -62,14 +63,14 @@ const tiles = await Promise.all(
     </ul>
   </div>
 
-  <dialog class="lightbox" aria-label="Visor de ilustración" data-lightbox>
+  <dialog class="lightbox" aria-label={ui.lightboxAria} data-lightbox>
     <div class="lightbox__bg" data-bg></div>
     <img class="lightbox__ambient" data-ambient alt="" aria-hidden="true" />
     <div class="lightbox__stage" data-stage></div>
     <p class="lightbox__caption" data-caption aria-live="polite"></p>
-    <button type="button" class="lb-btn lb-close" data-close aria-label="Cerrar"><Icon name="close" size={24} /></button>
-    <button type="button" class="lb-btn lb-prev" data-prev aria-label="Anterior"><Icon name="arrow" size={26} /></button>
-    <button type="button" class="lb-btn lb-next" data-next aria-label="Siguiente"><Icon name="arrow" size={26} /></button>
+    <button type="button" class="lb-btn lb-close" data-close aria-label={ui.close}><Icon name="close" size={24} /></button>
+    <button type="button" class="lb-btn lb-prev" data-prev aria-label={ui.prev}><Icon name="arrow" size={26} /></button>
+    <button type="button" class="lb-btn lb-next" data-next aria-label={ui.next}><Icon name="arrow" size={26} /></button>
   </dialog>
 </section>
 

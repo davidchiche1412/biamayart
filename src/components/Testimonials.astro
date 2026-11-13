@@ -1,16 +1,17 @@
 ---
 import Icon from './Icon.astro';
-import type { Testimonial } from '../data/testimonials';
+import { fill, getUi, safeHref, type Testimonial } from '../lib/cms';
 
 interface Props {
   items: Testimonial[];
   heading?: string;
   id?: string;
 }
-const { items, heading = 'Opiniones de clientes', id = 'opiniones' } = Astro.props;
+const ui = await getUi();
+const { items, heading = ui.testimonialsHeading, id = 'opiniones' } = Astro.props;
 ---
 
-<section class="testimonials section" aria-labelledby={`${id}-title`} data-carousel>
+<section class="testimonials section" aria-labelledby={`${id}-title`} data-carousel data-live-template={ui.testimonialLive}>
   <div class="wrap">
     <h2 id={`${id}-title`}>{heading}</h2>
 
@@ -20,7 +21,7 @@ const { items, heading = 'Opiniones de clientes', id = 'opiniones' } = Astro.pro
           items.map((t, i) => (
             <li
               class="slide"
-              aria-label={`${i + 1} de ${items.length}`}
+              aria-label={fill(ui.slideOf, { n: i + 1, total: items.length })}
               hidden={i !== 0}
               data-slide
             >
@@ -30,7 +31,7 @@ const { items, heading = 'Opiniones de clientes', id = 'opiniones' } = Astro.pro
                 </blockquote>
                 <figcaption>
                   {t.href ? (
-                    <a href={t.href} target="_blank" rel="noopener noreferrer">
+                    <a href={safeHref(t.href)} target="_blank" rel="noopener noreferrer">
                       {t.author}
                     </a>
                   ) : (
@@ -47,13 +48,13 @@ const { items, heading = 'Opiniones de clientes', id = 'opiniones' } = Astro.pro
       {
         items.length > 1 && (
           <div class="controls">
-            <button type="button" class="ctrl ctrl--prev" data-prev aria-label="Opinión anterior">
+            <button type="button" class="ctrl ctrl--prev" data-prev aria-label={ui.testimonialPrev}>
               <Icon name="arrow" />
             </button>
             <div class="dots" aria-hidden="true">
               {items.map((_, i) => <span class:list={['dot', { 'is-on': i === 0 }]} data-dot />)}
             </div>
-            <button type="button" class="ctrl" data-next aria-label="Opinión siguiente">
+            <button type="button" class="ctrl" data-next aria-label={ui.testimonialNext}>
               <Icon name="arrow" />
             </button>
           </div>
@@ -179,7 +180,11 @@ const { items, heading = 'Opiniones de clientes', id = 'opiniones' } = Astro.pro
       index = (next + slides.length) % slides.length;
       slides.forEach((s, i) => (s.hidden = i !== index));
       dots.forEach((d, i) => d.classList.toggle('is-on', i === index));
-      if (announce) live.textContent = `Opinión ${index + 1} de ${slides.length}`;
+      if (announce) {
+        live.textContent = (root.dataset.liveTemplate ?? '{n}/{total}')
+          .replace('{n}', String(index + 1))
+          .replace('{total}', String(slides.length));
+      }
     };
 
     root.querySelector('[data-prev]')?.addEventListener('click', () => show(index - 1));

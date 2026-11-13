@@ -1,19 +1,20 @@
 ---
-import { projectLabels, type ProjectSlug } from '../data/artworks';
+import { getUi } from '../lib/cms';
 
 interface Props {
-  filters: ProjectSlug[];
+  filters: { slug: string; label: string }[];
 }
 
 const { filters } = Astro.props;
+const ui = await getUi();
 ---
 
-<div class="filters" role="group" aria-label="Filtrar por proyecto" data-filters>
-  <button type="button" class="chip" aria-pressed="true" data-filter="all">Todo</button>
+<div class="filters" role="group" aria-label={ui.filtersAria} data-filters data-count-template={ui.piecesCount}>
+  <button type="button" class="chip" aria-pressed="true" data-filter="all">{ui.filterAll}</button>
   {
     filters.map((f) => (
-      <button type="button" class="chip" aria-pressed="false" data-filter={f}>
-        {projectLabels[f]}
+      <button type="button" class="chip" aria-pressed="false" data-filter={f.slug}>
+        {f.label}
       </button>
     ))
   }
@@ -61,7 +62,10 @@ const { filters } = Astro.props;
     const apply = (tag: string) => {
       chips.forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.filter === tag)));
       window.dispatchEvent(new CustomEvent('gallery:filter', { detail: tag }));
-      count.textContent = `${document.querySelectorAll('[data-gallery] .tile:not([hidden])').length} piezas`;
+      count.textContent = (root.dataset.countTemplate ?? '{n}').replace(
+        '{n}',
+        String(document.querySelectorAll('[data-gallery] .tile:not([hidden])').length),
+      );
     };
 
     chips.forEach((c) => c.addEventListener('click', () => apply(c.dataset.filter!)));

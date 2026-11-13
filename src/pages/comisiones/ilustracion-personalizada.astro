@@ -1,57 +1,27 @@
 ---
 import Base from '../../layouts/Base.astro';
+import { fill, getPage, getUi } from '../../lib/cms';
 import { url } from '../../lib/url';
 import MailtoForm from '../../components/MailtoForm.astro';
 
-const tiers = [
-  {
-    title: 'Busto',
-    price: 'Desde 40€',
-    scope: 'Por encima del hombro',
-    items: ['Ilustración detallada', 'Fondo sencillo (detallado +25€)', '2 bocetos iniciales', '3 revisiones'],
-    extra: ['Personajes extras +20€'],
-  },
-  {
-    title: 'Medio cuerpo',
-    price: 'Desde 50€',
-    scope: 'Por encima de la cintura',
-    items: ['Ilustración detallada', 'Fondo sencillo (detallado +25€)', '2 bocetos iniciales', '3 revisiones'],
-    extra: ['Personajes extras +20€'],
-  },
-  {
-    title: 'Cuerpo entero',
-    price: 'Desde 60€',
-    scope: 'Figura completa',
-    items: ['Ilustración detallada', 'Fondo sencillo (detallado +25€)', '2 bocetos iniciales', '3 revisiones'],
-    extra: ['Personajes extras +20€'],
-  },
-  {
-    title: 'Animación',
-    price: 'Desde 80€',
-    scope: 'Depende de la duración y el tipo de ilustración base',
-    items: ['Ilustración base (1 personaje + fondo sencillo)', 'Animación simple (full animación +50€)', 'Duración 5-15 segundos', '2 revisiones'],
-    extra: ['Personajes extras +20€', 'Fondo detallado +25€'],
-  },
-];
+const page = await getPage('customIllustrationPage');
+const ui = await getUi();
 ---
 
-<Base
-  title="Ilustración personalizada"
-  description="Tarifas de ilustración personalizada: busto, medio cuerpo, cuerpo entero y animación. Pide tu presupuesto gratis."
->
+<Base title={page.seoTitle} description={page.seoDescription}>
   <section class="page-hero">
     <div class="wrap">
-      <p class="eyebrow"><a href={url('/comisiones')}>← Comisiones</a></p>
-      <h1>¿Quieres una ilustración personalizada?</h1>
-      <p>Elige el formato que mejor encaje con tu idea. Todos los precios son orientativos y pueden variar según los detalles.</p>
+      <p class="eyebrow"><a href={url('/comisiones')}>{page.backLabel}</a></p>
+      <h1>{page.heading}</h1>
+      <p>{page.text}</p>
     </div>
   </section>
 
-  <section class="section tiers" aria-label="Tarifas">
+  <section class="section tiers" aria-label={ui.tiersAria}>
     <div class="wrap">
       <ul class="cards">
         {
-          tiers.map((t) => (
+          page.tiers.map((t: { title: string; price: string; scope: string; items: string[]; extra: string[]; buttonLabel: string }) => (
             <li class="card">
               <h2>{t.title}</h2>
               <p class="price">{t.price}</p>
@@ -59,7 +29,7 @@ const tiers = [
               <ul class="features">{t.items.map((i) => <li>{i}</li>)}</ul>
               <ul class="features features--extra">{t.extra.map((i) => <li>{i}</li>)}</ul>
               <a class="btn btn--ghost" href="#presupuesto">
-                Más información<span class="sr-only"> sobre {t.title}</span>
+                {t.buttonLabel}<span class="sr-only"> {fill(ui.moreAbout, { title: t.title })}</span>
               </a>
             </li>
           ))
@@ -70,8 +40,8 @@ const tiers = [
 
   <section class="section quote" id="presupuesto" aria-labelledby="presupuesto-title">
     <div class="wrap quote__box">
-      <h2 id="presupuesto-title">Obtén un presupuesto gratis</h2>
-      <p>¡Descríbeme la idea que tienes en mente y démosle forma!</p>
+      <h2 id="presupuesto-title">{page.quoteHeading}</h2>
+      <p>{page.quoteText}</p>
       <MailtoForm variant="quote" id="ilustracion-form" />
     </div>
   </section>
